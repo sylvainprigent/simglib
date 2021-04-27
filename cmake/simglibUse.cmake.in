@@ -1,0 +1,31 @@
+############################################################
+#
+#
+# Copyright (c) simglib 2020
+#
+# AUTHOR:
+# Sylvain Prigent 
+# 
+######################################################################
+## 
+### Commentary: 
+## 
+######################################################################
+## 
+### Change log:
+## 
+######################################################################
+
+if(NOT simglib_USE_FILE_INCLUDED)
+
+   set(simglib_USE_FILE_INCLUDED 1)
+
+   include_directories(${simglib_INCLUDE_DIRS})
+
+   link_directories(${simglib_LIBRARY_DIRS})
+
+   set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${simglib_CMAKE_DIR})
+
+   include(simglibDependencies)
+   
+endif(NOT simglib_USE_FILE_INCLUDED)

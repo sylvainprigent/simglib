@@ -1,0 +1,16 @@
+IF(UNIX)
+  #SET(simglib_LIB_NAME "@simglib_LIBRARY_DIR@libsimglib.a")
+  SET(simglib_LIB_NAME "libsimglib.a")
+ELSEIF(WIN32)
+  #SET(simglib_LIB_NAME "@simglib_LIBRARY_DIR@simglib.lib")
+  SET(simglib_LIB_NAME "simglib.lib")
+ENDIF(UNIX)
+
+SET(simglib_INCLUDE_DIRS "@simglib_INCLUDE_DIR@")
+SET(simglib_LIBRARY_DIRS "@simglib_LIBRARY_DIR@")
+SET(simglib_LIBRARIES ${simglib_LIB_NAME})
+
+SET(simglib_USE_FILE "@simglib_USE_FILE@")
+SET(simglib_CMAKE_DIR "@simglib_CMAKE_DIR@")
+
+MARK_AS_ADVANCED(simglib_LIBRARIES simglib_LIBRARY_DIR simglib_INCLUDE_DIRS simglib_USE_FILE)

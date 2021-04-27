@@ -1,0 +1,6 @@
+#include "../src/sroi/SPoint.h"
+#include "../src/sroi/SRoi.h"
+#include "../src/sroi/SRoiDrawer.h"
+#include "../src/sroi/SRoiPatch.h"
+#include "../src/sroi/SRoiReader.h"
+#include "../src/sroi/SRoiTypes.h"

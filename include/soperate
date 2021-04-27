@@ -1,0 +1,4 @@
+#include "../src/soperate/SApplyMask.h"
+#include "../src/soperate/SImageCalculator.h"
+#include "../src/soperate/SMaskCalculator.h"
+#include "../src/soperate/SOperate.h"

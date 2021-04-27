@@ -1,0 +1,31 @@
+### simglibSetTestEnvironment.cmake.in --- 
+######################################################################
+## 
+### Commentary: 
+## 
+######################################################################
+## 
+### Change log:
+## 
+######################################################################
+
+#
+# TEST_INCLUDE_FILE for use with tests.
+# Sets the PATH environment so that dlls are found.
+#
+
+# Choose a configuration with which to drive CTest tests.
+
+IF(NOT CTEST_CONFIGURATION_TYPE)
+  set (CTEST_CONFIGURATION_TYPE "Release")
+endif()
+
+if(@CMAKE_SYSTEM_NAME@ STREQUAL Windows)
+    set(PATHS_FOR_TESTS)
+    list(APPEND PATHS_FOR_TESTS "@CMAKE_RUNTIME_OUTPUT_DIRECTORY@/${CTEST_CONFIGURATION_TYPE}")
+else()
+    #Make string list from paths.
+    set(PATHS_FOR_TESTS "$ENV{PATH}")
+endif()
+
+set(ENV{PATH} "${PATHS_FOR_TESTS}")

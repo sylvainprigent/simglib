@@ -1,0 +1,4 @@
+#include "../src/sdeconv/srichardsonlucy.h"
+#include "../src/sdeconv/sutils.h"
+#include "../src/sdeconv/swiener.h"
+#include "../src/sdeconv/sgaussianpsf.h"

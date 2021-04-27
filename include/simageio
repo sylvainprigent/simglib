@@ -1,0 +1,5 @@
+#include "../src/simageio/SImageIO.h"
+#include "../src/simageio/SImageReader.h"
+#include "../src/simageio/SImIO.h"
+#include "../src/simageio/STiffIO.h"
+#include "../src/simageio/STxtIO.h"

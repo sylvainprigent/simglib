@@ -1,0 +1,2 @@
+#include "../src/sfft/SFFT.h"
+#include "../src/sfft/SFFTConvolutionFilter.h"

@@ -1,0 +1,2 @@
+#include "../src/sshape/SShape.h"
+#include "../src/sshape/SLine.h"
