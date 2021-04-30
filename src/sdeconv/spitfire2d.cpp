@@ -13,6 +13,7 @@
 
 #include <simageio>
 
+#include "math.h"
 #ifdef SL_USE_OPENMP
 #include "omp.h"
 #endif
@@ -28,7 +29,7 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
     omp_set_num_threads(omp_get_max_threads());
     int fftThreads = fftwf_init_threads();
     if (fftThreads == 0){
-        this->notify("Cannot initialize parallel fft: error ");
+        observable->notify("Cannot initialize parallel fft: error ");
     }
 #endif
 
@@ -110,13 +111,21 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
     // Deconvolution process
     float inv_reg = 1.0 / regularization;
 
+#ifdef SL_USE_OPENMP
+    fftwf_plan_with_nthreads(omp_get_max_threads());
+#endif
+
+    fftwf_plan Planfft = fftwf_plan_dft_r2c_2d(sx, sy, deconv_image, deconv_image_FT, FFTW_ESTIMATE);
+    fftwf_plan Planifft = fftwf_plan_dft_c2r_2d(sx, sy, residue_image_FT, residue_image, FFTW_ESTIMATE);
+    
     for (unsigned int iter = 0; iter < niter; iter++) {
         // Primal optimization
 #pragma omp parallel for        
         for (int i = 0 ; i < N ; ++i){
             auxiliary_image[i] = deconv_image[i];
         }
-        fft2D(deconv_image, deconv_image_FT, sx, sy);
+        fftwf_execute(Planfft);
+        //fft2D(deconv_image, deconv_image_FT, sx, sy);
 
 #pragma omp parallel for
         for (int i = 0 ; i < Nfft ; i++){
@@ -140,8 +149,8 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
                     + adjoint_OTF[i][1] * real_tmp;
 
         }
-
-        ifft2D(residue_image_FT, residue_image, sx, sy);
+        fftwf_execute(Planifft);
+        //ifft2D(residue_image_FT, residue_image, sx, sy);
 
 #pragma omp parallel for
         for (unsigned int x = 1 ; x < sx-1 ; ++x){
@@ -214,7 +223,9 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
 
     } // endfor (int iter = 0; iter < nb_iters_max; iter++)
 
-    // copy output
+    // free output
+    fftwf_destroy_plan(Planfft);
+    fftwf_destroy_plan(Planifft);
     free(dual_image0);
     free(dual_image1);
     free(dual_image2);
