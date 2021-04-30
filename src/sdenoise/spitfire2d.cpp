@@ -7,6 +7,11 @@
 #include "spitfire2d.h"
 
 #include <score/SMath.h>
+#include "math.h"
+
+#ifdef SL_USE_OPENMP
+#include "omp.h"
+#endif
 
 namespace SImg{
 
@@ -151,7 +156,7 @@ void spitfire2d_hv(float* noisy_image, unsigned int sx, unsigned int sy, float* 
     float dual_weight_comp = dual_step * (1 - weighting);
 
     // Initializations
-    denoised_image = (float*) malloc(sizeof(float) * N);
+    //denoised_image = (float*) malloc(sizeof(float) * N);
     float* dual_images0 = (float*) malloc(sizeof(float) * N);
     float* dual_images1 = (float*) malloc(sizeof(float) * N);
     float* dual_images2 = (float*) malloc(sizeof(float) * N);

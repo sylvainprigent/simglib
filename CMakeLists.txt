@@ -42,10 +42,10 @@ set(simglibProject_USE_DOXYGEN 0)
 ## #################################################################
 ## OpemMP option
 ## #################################################################
-option(simglib_USE_OPENMP "use OpenMP" OFF)
-if (simglib_USE_OPENMP)
-    add_compile_definitions(simglibUSEOPENMP)
-endif(simglib_USE_OPENMP)
+option(SL_USE_OPENMP "use OpenMP" OFF)
+if (SL_USE_OPENMP)
+    add_compile_definitions(SL_USE_OPENMP)
+endif(SL_USE_OPENMP)
 
 include(simglibDependencies)
 

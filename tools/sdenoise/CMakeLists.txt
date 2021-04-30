@@ -23,7 +23,7 @@ include_directories(${simglib_SRC_INCLUDE_DIR})
 SET(NAME spitfiredenoise2d)
 SET(FILE ${SRC_FILES} spitfire2d.cpp)
 add_executable(${NAME} ${FILE} )
-target_link_libraries(${NAME} score sdenoise scli simage simageio ${SL_LIBRARIES})
+target_link_libraries(${NAME} score sdenoise scli simage simageio smanipulate ${SL_LIBRARIES})
 
 SET(NAME spitfiredenoise3d)
 SET(FILE ${SRC_FILES} spitfire3d.cpp)

@@ -1,8 +1,9 @@
 #include <score>
 #include <scli>
 #include <simageio>
+#include <smanipulate>
 #include <sdenoise>
-
+#include "math.h"
 
 int main(int argc, char *argv[])
 {
@@ -47,36 +48,50 @@ int main(int argc, char *argv[])
         }
 
         // Run process
-
         SImageFloat* inputImage = dynamic_cast<SImageFloat*>(SImageReader::read(inputImageFile, 32));
         float* noisy_image = inputImage->getBuffer();
         unsigned int sx = inputImage->getSizeX();
         unsigned int sy = inputImage->getSizeY();
-        if (inputImage->getSizeZ() > 1 || inputImage->getSizeT(), inputImage->getSizeC())
+        if (inputImage->getSizeZ() > 1 || inputImage->getSizeT() > 1 || inputImage->getSizeC() > 1)
         {
             throw SException("spitfire2d can process only 2D gray scale images");
         }
+        float imax = inputImage->getMax();
+        float imin = inputImage->getMin();
 
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
-
-        float* denoised_image;
         SImg::tic();
+
+        // min max normalize intensities
+        float* noisy_image_norm = new float[sx*sy];
+        SImg::normMinMax(noisy_image, sx, sy, 1, 1, 1, noisy_image_norm);
+        delete inputImage;
+
+        // run denoising
+        float* denoised_image = new float[sx*sy];
         if (method == "SV"){
-            SImg::spitfire2d_sv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, verbose, observable);
+            SImg::spitfire2d_sv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
         }
         else if (method == "HV")
         {
-            SImg::spitfire2d_hv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, verbose, observable);
+            SImg::spitfire2d_hv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
         }
         else{
             throw SException("spitfire2d: method must be SV or HV");
+        }
+
+        // normalize back intensities
+        #pragma omp parallel for
+        for (unsigned int i = 0 ; i < sx*sy ; ++i)
+        {
+            denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
         }
         SImg::toc();
 
         SImageReader::write(new SImageFloat(denoised_image, sx, sy), outputImageFile);
 
-        delete inputImage;
+        delete noisy_image_norm;
         delete denoised_image;
         delete observable;
     }

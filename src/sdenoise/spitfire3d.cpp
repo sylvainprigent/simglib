@@ -7,6 +7,7 @@
 #include "spitfire3d.h"
 
 #include <score/SMath.h>
+#include "math.h"
 
 namespace SImg{
 

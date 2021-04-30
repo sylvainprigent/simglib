@@ -65,7 +65,7 @@ void normMinMax(float* image, unsigned int sx, unsigned int sy, unsigned int sz,
     float invMaxMenusMin = 1.0 / (max - min);
 
     // normalize
-    output = new float[bs];
+    //output = new float[bs];
 #pragma omp parallel for
     for (unsigned int i = 0 ; i < bs ; i++){
         output[i] = (image[i]-min) * invMaxMenusMin;

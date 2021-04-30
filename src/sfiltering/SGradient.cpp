@@ -138,7 +138,7 @@ float gradient3dL1(float* image, unsigned int sx, unsigned int sy, unsigned int 
     return normL1;
 }
 
-float gradient2dMagnitude(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* magnitude)
+void gradient2dMagnitude(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* magnitude)
 {
     float* bufferGx; float* bufferGy;
     gradient2d( image, sx, sy, sz, st, sc, bufferGx, bufferGy);
@@ -149,7 +149,7 @@ float gradient2dMagnitude(float* image, unsigned int sx, unsigned int sy, unsign
     }
 }
 
-float gradient3dMagnitude(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* magnitude)
+void gradient3dMagnitude(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* magnitude)
 {
     float* bufferGx; float* bufferGy; float* bufferGz;
     gradient3d(image, sx, sy, sz, st, sc, bufferGx, bufferGy, bufferGz);

@@ -17,9 +17,9 @@ if(${DOXYGEN_FOUND})
   set(simglib_USE_DOXYGEN 1)
 endif(${DOXYGEN_FOUND})
 
-if(${simglib_USE_OPENMP})
+if(${SL_USE_OPENMP})
   find_package(OpenMP REQUIRED)
-endif(${simglib_USE_OPENMP})  
+endif(${SL_USE_OPENMP})  
 
 ## #################################################################
 ## libfftw3
@@ -60,7 +60,11 @@ set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${SL_C_FLAGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${SL_CXX_FLAGS}")
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 
+if(${SL_USE_OPENMP})
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread -fopenmp")
+endif(${SL_USE_OPENMP})  
 
+#set (SL_LIBRARIES ${SL_LIBRARIES} m) 
 set (SL_INCLUDE_DIRS ${SL_INCLUDE_DIRS} CACHE STRING "include directories for spartion dependancies")
 set (SL_LIBRARIES ${SL_LIBRARIES} CACHE STRING "spartion required and optional 3rd party libraries")
 set (SL_DEFINITIONS ${SL_DEFINITIONS} CACHE STRING "SL_USE_XXX defines")
