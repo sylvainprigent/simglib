@@ -1,0 +1,3 @@
+#include "../src/sdenoise/spitfire2d.h"
+#include "../src/sdenoise/spitfire3d.h"
+#include "../src/sdenoise/spitfire4d.h"

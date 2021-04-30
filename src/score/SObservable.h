@@ -25,7 +25,7 @@ public:
     /// \param[in] observer Pointer to the observer
     void addObserver(SObserver* observer);
 
-protected:
+public:
     void notifyProgress(int value);
     void notify(std::string message, int type =  SObserver::MessageTypeDefault);
 
