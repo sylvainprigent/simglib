@@ -58,8 +58,6 @@ int main(int argc, char *argv[])
         {
             throw SException("spitfire2d can process only 2D gray scale images");
         }
-        float imax = inputImage->getMax();
-        float imin = inputImage->getMin();
 
         // create the PSF
         float* psf = new float[sx*sy];
@@ -72,39 +70,17 @@ int main(int argc, char *argv[])
             psf[i] /= psf_sum;
         }
 
+        // run deconvolution
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
         SImg::tic();
-
-        // min max normalize intensities
-        float* blurry_image_norm = new float[sx*sy];
-        SImg::normL2(blurry_image, sx, sy, 1, 1, 1, blurry_image_norm);
-        delete inputImage;
-
-        // run denoising
-        float* deconv_image = new float[sx*sy];
-        if (method == "SV"){
-            SImg::spitfire2d_deconv_sv(blurry_image_norm, sx, sy, psf, deconv_image, pow(2, -regularization), weighting, niter, verbose, observable);
-        }
-        else if (method == "HV")
-        {
-            SImg::spitfire2d_deconv_hv(blurry_image_norm, sx, sy, psf, deconv_image, pow(2, -regularization), weighting, niter, verbose, observable);
-        }
-        else{
-            throw SException("spitfire2d: method must be SV or HV");
-        }
-
-        // normalize back intensities
-        #pragma omp parallel for
-        for (unsigned int i = 0 ; i < sx*sy ; ++i)
-        {
-            deconv_image[i] = deconv_image[i]*(imax-imin) + imin;
-        }
+        float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy));
+        SImg::spitfire2d_deconv(blurry_image, sx, sy, psf, deconv_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
         SImg::toc();
 
         SImageReader::write(new SImageFloat(deconv_image, sx, sy), outputImageFile);
 
-        delete[] blurry_image_norm;
+        delete[] blurry_image;
         delete[] deconv_image;
         delete observable;
     }
