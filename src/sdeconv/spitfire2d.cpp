@@ -11,8 +11,6 @@
 #include <sfft/SFFT.h>
 #include <sfft/SFFTConvolutionFilter.h>
 
-#include <simageio>
-
 #include "math.h"
 #ifdef SL_USE_OPENMP
 #include "omp.h"
@@ -27,6 +25,7 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
 
 #ifdef SL_USE_OPENMP
     omp_set_num_threads(omp_get_max_threads());
+    observable->notify("Use " + std::to_string(omp_get_max_threads()) + " threads");
     int fftThreads = fftwf_init_threads();
     if (fftThreads == 0){
         observable->notify("Cannot initialize parallel fft: error ");
@@ -66,7 +65,6 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
     float* dual_image0 = (float*) malloc(sizeof(float) * N);
     float* dual_image1 = (float*) malloc(sizeof(float) * N);
     float* dual_image2 = (float*) malloc(sizeof(float) * N);
-    //float* dual_image3 = (float*) malloc(sizeof(float) * N);
     float* auxiliary_image = (float*) malloc(sizeof(float) * N);
     float* residue_image = (float*) malloc(sizeof(float) * unsigned(N));
 
@@ -93,9 +91,6 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
     fft2D(blurry_image, blurry_image_FT, sx, sy);
     fft2D(OTFReal, OTF, sx, sy);
     fft2D(adjoint_OTFReal, adjoint_OTF, sx, sy);
-
-    SImageReader::write(new SImageFloat(OTFReal, sx, sy), "new_OTF.tif");
-    SImageReader::write(new SImageFloat(adjoint_OTFReal, sx, sy), "new_adjoint_OTF.tif");
 
     delete[] OTFReal;
     delete[] adjoint_OTFReal;
@@ -253,6 +248,7 @@ void spitfire2d_deconv_hv(float* blurry_image, unsigned int sx, unsigned int sy,
 #ifdef SL_USE_OPENMP
     omp_set_num_threads(omp_get_max_threads());
     int fftThreads = fftwf_init_threads();
+    observable->notify("Use " + std::to_string(omp_get_max_threads()) + " threads");
     if (fftThreads == 0){
         observable->notify("Cannot initialize parallel fft: error ");
     }
@@ -318,9 +314,6 @@ void spitfire2d_deconv_hv(float* blurry_image, unsigned int sx, unsigned int sy,
     fft2D(blurry_image, blurry_image_FT, sx, sy);
     fft2D(OTFReal, OTF, sx, sy);
     fft2D(adjoint_OTFReal, adjoint_OTF, sx, sy);
-
-    SImageReader::write(new SImageFloat(OTFReal, sx, sy), "new_OTF.tif");
-    SImageReader::write(new SImageFloat(adjoint_OTFReal, sx, sy), "new_adjoint_OTF.tif");
 
     delete[] OTFReal;
     delete[] adjoint_OTFReal;
