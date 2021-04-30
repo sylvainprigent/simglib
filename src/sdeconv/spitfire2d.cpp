@@ -11,6 +11,8 @@
 #include <sfft/SFFT.h>
 #include <sfft/SFFTConvolutionFilter.h>
 
+#include <simageio>
+
 #ifdef SL_USE_OPENMP
 #include "omp.h"
 #endif
@@ -60,7 +62,6 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
     float dual_weight_comp = dual_step * (1 - weighting);
 
     // Initializations
-    float* deblurred_image = (float*) malloc(sizeof(float) * N);
     float* dual_image0 = (float*) malloc(sizeof(float) * N);
     float* dual_image1 = (float*) malloc(sizeof(float) * N);
     float* dual_image2 = (float*) malloc(sizeof(float) * N);
@@ -76,14 +77,14 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
         dual_image3[i] = 0.0;
     }
 
-    // init deblurred_image as input image
+    // init deconv_image as input image
 #pragma omp parallel for
     for (int i = 0 ; i < N ; i++){
-        deblurred_image[i] = blurry_image[i];
+        deconv_image[i] = blurry_image[i];
     }
 
     fftwf_complex* blurry_image_FT = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(Nfft));
-    fftwf_complex* deblurred_image_FT = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(Nfft));
+    fftwf_complex* deconv_image_FT = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(Nfft));
     fftwf_complex* residue_image_FT = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(Nfft));
     fftwf_complex* OTF = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(Nfft));
     fftwf_complex* adjoint_OTF = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(Nfft));
@@ -92,13 +93,16 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
     fft2D(OTFReal, OTF, sx, sy);
     fft2D(adjoint_OTFReal, adjoint_OTF, sx, sy);
 
+    SImageReader::write(new SImageFloat(OTFReal, sx, sy), "new_OTF.tif");
+    SImageReader::write(new SImageFloat(adjoint_OTFReal, sx, sy), "new_adjoint_OTF.tif");
+
     delete[] OTFReal;
     delete[] adjoint_OTFReal;
 
 #pragma omp parallel for
-    for (int i = 0 ; i < Nfft ; i++){
-        deblurred_image_FT[i][0] = blurry_image_FT[i][0];
-        deblurred_image_FT[i][1] = blurry_image_FT[i][1];
+    for (int i = 0 ; i < Nfft ; ++i){
+        deconv_image_FT[i][0] = blurry_image_FT[i][0];
+        deconv_image_FT[i][1] = blurry_image_FT[i][1];
         residue_image_FT[i][0] = blurry_image_FT[i][0];
         residue_image_FT[i][1] = blurry_image_FT[i][1];
     }
@@ -110,24 +114,24 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
         // Primal optimization
 #pragma omp parallel for        
         for (int i = 0 ; i < N ; ++i){
-            auxiliary_image[i] = deblurred_image[i];
+            auxiliary_image[i] = deconv_image[i];
         }
-        fft2D(deblurred_image, deblurred_image_FT, sx, sy);
+        fft2D(deconv_image, deconv_image_FT, sx, sy);
 
 #pragma omp parallel for
         for (int i = 0 ; i < Nfft ; i++){
-            residue_image_FT[i][0] = deblurred_image_FT[i][0];
-            residue_image_FT[i][1] = deblurred_image_FT[i][1];
+            residue_image_FT[i][0] = deconv_image_FT[i][0];
+            residue_image_FT[i][1] = deconv_image_FT[i][1];
         }
 
         // Data term
 #pragma omp parallel for
         for (int i = 0 ; i < Nfft ; i++){
-            float real_tmp = OTF[i][0] * deblurred_image_FT[i][0]
-                    - OTF[i][1] * deblurred_image_FT[i][1]
+            float real_tmp = OTF[i][0] * deconv_image_FT[i][0]
+                    - OTF[i][1] * deconv_image_FT[i][1]
                     - blurry_image_FT[i][0];
-            float imag_tmp = OTF[i][0] * deblurred_image_FT[i][1]
-                    + OTF[i][1] * deblurred_image_FT[i][0]
+            float imag_tmp = OTF[i][0] * deconv_image_FT[i][1]
+                    + OTF[i][1] * deconv_image_FT[i][0]
                     - blurry_image_FT[i][1];
 
             residue_image_FT[i][0] = adjoint_OTF[i][0] * real_tmp
@@ -144,7 +148,7 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
             for (unsigned int y = 1 ; y < sy-1 ; ++y){
 
                 unsigned int p = y + sy * x;
-                float tmp = deblurred_image[p] - primal_step * residue_image[p]/float(N);
+                float tmp = deconv_image[p] - primal_step * residue_image[p]/float(N);
 
                 unsigned int pxm = p - sy;
                 unsigned int pym = p-1;
@@ -155,13 +159,13 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
                         + primal_weight_comp * dual_image2[p]);
 
                 if (tmp > 1.0){
-                    deblurred_image[p] = 1.0;
+                    deconv_image[p] = 1.0;
                 }
                 else if (tmp < 0.0 ){
-                    deblurred_image[p] = 0.0;
+                    deconv_image[p] = 0.0;
                 }
                 else{
-                    deblurred_image[p] = tmp;
+                    deconv_image[p] = tmp;
                 } 
             }
         }
@@ -178,7 +182,7 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
         // Dual optimization
 #pragma omp parallel for
         for (int i = 0 ; i < N ; i++){
-            auxiliary_image[i] = 2 * deblurred_image[i] - auxiliary_image[i];
+            auxiliary_image[i] = 2 * deconv_image[i] - auxiliary_image[i];
         }
 
 #pragma omp parallel for
@@ -219,7 +223,7 @@ void spitfire2d_deconv_sv(float* blurry_image, unsigned int sx, unsigned int sy,
     free(residue_image);
 
     fftwf_free(blurry_image_FT);
-    fftwf_free(deblurred_image_FT);
+    fftwf_free(deconv_image_FT);
     fftwf_free(residue_image_FT);
     fftwf_free(OTF);
     fftwf_free(adjoint_OTF);
