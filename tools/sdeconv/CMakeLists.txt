@@ -37,3 +37,8 @@ SET(NAME wienerairyscan2d)
 SET(FILE ${SRC_FILES} wienerairyscan2d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sfft smanipulate simage simageio scli )
+
+SET(NAME spitfiredeconv2d)
+SET(FILE ${SRC_FILES} spitfire2d.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)

@@ -91,8 +91,8 @@ int main(int argc, char *argv[])
 
         SImageReader::write(new SImageFloat(denoised_image, sx, sy), outputImageFile);
 
-        delete noisy_image_norm;
-        delete denoised_image;
+        delete[] noisy_image_norm;
+        delete[] denoised_image;
         delete observable;
     }
     catch (SException &e)
