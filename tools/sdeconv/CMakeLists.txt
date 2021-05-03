@@ -42,3 +42,8 @@ SET(NAME spitfiredeconv2d)
 SET(FILE ${SRC_FILES} spitfire2d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
+
+SET(NAME spitfiredeconv2dplan)
+SET(FILE ${SRC_FILES} spitfire2dplan.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
