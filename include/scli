@@ -6,3 +6,4 @@
 #include "../src/scli/SCliSelect.h"
 #include "../src/scli/SCliUtils.h"
 #include "../src/scli/SCliTimer.h"
+#include "../src/scli/STimer.h"

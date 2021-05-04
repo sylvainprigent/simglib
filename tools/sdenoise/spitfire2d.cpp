@@ -88,11 +88,13 @@ int main(int argc, char *argv[])
             denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
         }
         SImg::toc();
+        delete STimerAccess::instance();
 
-        SImageReader::write(new SImageFloat(denoised_image, sx, sy), outputImageFile);
+        SImageFloat* denImage = new SImageFloat(denoised_image, sx, sy);
+        SImageReader::write(denImage, outputImageFile);
 
         delete[] noisy_image_norm;
-        delete[] denoised_image;
+        delete denImage;
         delete observable;
     }
     catch (SException &e)

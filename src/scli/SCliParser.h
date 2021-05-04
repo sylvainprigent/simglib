@@ -15,6 +15,7 @@ class SCLI_EXPORT SCliParser{
 
 public:
     SCliParser(int argc, char *argv[]);
+    ~SCliParser();
 
 public:
     // inputs

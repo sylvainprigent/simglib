@@ -16,11 +16,13 @@ SImage::SImage(){
     m_ry = 0;
     m_rz = 0;
     m_rt = 0;
-    m_unit = new char[8];
+    m_unit = "";
     m_precision = 0;
 }
 
-SImage::~SImage(){
+SImage::~SImage()
+{
+
 }
 
 void SImage::setSizeX(unsigned int value){

@@ -14,7 +14,10 @@ SCliParameterList::~SCliParameterList()
 {
     for (int i = 0; i < int(m_parameters.size()) ; i++)
     {
-        //delete m_parameters[i];
+        if (m_parameters[i])
+        {
+            delete m_parameters[i];
+        }
     }
 }
 

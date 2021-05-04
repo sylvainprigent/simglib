@@ -525,7 +525,8 @@ void STiffIO::write(SImageFloat* image, std::string file){
                 }
             }
             TIFFWriteDirectory(tif);
-            _TIFFfree(buf);
+            delete[] buf;
+            //_TIFFfree(buf);
         }
 
         TIFFClose(tif);

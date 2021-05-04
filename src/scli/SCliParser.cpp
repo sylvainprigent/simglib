@@ -16,6 +16,11 @@ SCliParser::SCliParser(int argc, char *argv[])
     m_args.setProgramName(argv[0]);
 }
 
+SCliParser::~SCliParser()
+{
+
+}
+
 void SCliParser::addParameter(std::string name, std::string description, std::string defaultValue, std::string type,  bool isAdvanced)
 {
     SCliParameter *arginput = new SCliParameter(name, description);

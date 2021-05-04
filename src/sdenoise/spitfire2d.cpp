@@ -124,10 +124,10 @@ void spitfire2d_sv(float* noisy_image, unsigned int sx, unsigned int sy, float* 
         }
     } // endfor (int iter = 0; iter < nb_iters_max; iter++)
 
-    delete dual_images0;
-    delete dual_images1;
-    delete dual_images2;
-    delete auxiliary_image;
+    free(dual_images0);
+    free(dual_images1);
+    free(dual_images2);
+    free(auxiliary_image);
     if (verbose){
         observable->notifyProgress(100);
     }
@@ -267,11 +267,11 @@ void spitfire2d_hv(float* noisy_image, unsigned int sx, unsigned int sy, float* 
         }
     } // endfor (int iter = 0; iter < nb_iters_max; iter++)
 
-    delete dual_images0;
-    delete dual_images1;
-    delete dual_images2;
-    delete dual_images3;
-    delete auxiliary_image;
+    free(dual_images0);
+    free(dual_images1);
+    free(dual_images2);
+    free(dual_images3);
+    free(auxiliary_image);
     observable->notifyProgress(100);
 }
 

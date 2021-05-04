@@ -23,6 +23,11 @@ SCliParameter::SCliParameter(std::string name, std::string description)
     m_isAdvanced = false;
 }
 
+SCliParameter::~SCliParameter()
+{
+
+}
+
 std::string SCliParameter::getName()
 {
     return m_name;

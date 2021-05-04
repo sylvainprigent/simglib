@@ -28,6 +28,7 @@ public:
 
 public:
     SCliParameter(std::string name, std::string description="");
+    ~SCliParameter();
 
 public:
     std::string getName();

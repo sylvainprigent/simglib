@@ -18,6 +18,7 @@ SImageFloat::SImageFloat() : SImage(){
     m_st = 0;
     m_sc = 0;
     m_precision = 32;
+    m_buffer = nullptr;
 }
 
 SImageFloat::SImageFloat(unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ, unsigned int sizeT, unsigned int sizeC) : SImage(){
@@ -39,12 +40,15 @@ SImageFloat::SImageFloat(float* buffer, unsigned int sizeX, unsigned int sizeY, 
     m_st = sizeT;
     m_sc = sizeC;
     m_precision = 32;
-
+    //if (m_buffer){
+    //    delete[] m_buffer;
+    //}
     m_buffer = buffer;
 }
 
 SImageFloat::~SImageFloat(){
-    delete m_buffer;
+
+    delete[] m_buffer;
 }
 
 float SImageFloat::getMin(){
