@@ -1,0 +1,2 @@
+#include "../src/cugrad/cugrad.h"
+#include "../src/cugrad/cufft2d.h"

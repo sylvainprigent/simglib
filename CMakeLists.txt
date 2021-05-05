@@ -54,6 +54,7 @@ include(simglibDependencies)
 ## #################################################################
 option(simglib_BUILD_TESTS "Build Tests" ON)
 option(simglib_BUILD_TOOLS "Build Tools" OFF)
+option(simglib_BUILD_CUDA "Build Cuda" OFF)
 
 
 add_subdirectory( src )
