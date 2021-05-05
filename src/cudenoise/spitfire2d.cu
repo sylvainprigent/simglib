@@ -360,7 +360,7 @@ namespace SImg{
             // Primal optimization
             copy_buffer<<<numBlocks1d, blockSize1d>>>(cu_denoised_image, N, auxiliary_image);
     
-            hv_2d_primal<<<blockSize2d,gridSize2d>>>(sx, sy, primal_step, primal_weight, primal_weight_comp, sqrt2, 
+            hv_2d_primal<<<gridSize2d, blockSize2d>>>(sx, sy, primal_step, primal_weight, primal_weight_comp, sqrt2, 
                                                      cu_denoised_image, cu_noisy_image, dual_images0, dual_images1, 
                                                      dual_images2, dual_images3);
     
@@ -378,7 +378,7 @@ namespace SImg{
             dual_2d_auxiliary<<<numBlocks1d, blockSize1d>>>(N, auxiliary_image, cu_denoised_image);
     
             // dual    
-            hv_2d_dual<<<blockSize2d,gridSize2d>>>(sx, sy, dual_weight, dual_weight_comp, sqrt2, 
+            hv_2d_dual<<<gridSize2d, blockSize2d>>>(sx, sy, dual_weight, dual_weight_comp, sqrt2, 
                                                    auxiliary_image, dual_images0, 
                                                    dual_images1, dual_images2, dual_images3);
     
@@ -398,7 +398,9 @@ namespace SImg{
         cudaFree(cu_denoised_image); 
         cudaFree(cu_noisy_image);       
         
-        observable->notifyProgress(100);
+        if (verbose){
+            observable->notifyProgress(100);
+        }
     }
 
 }

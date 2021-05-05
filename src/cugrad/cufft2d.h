@@ -14,4 +14,6 @@ namespace SImg
     /// \param[in] sy Number of columns in the input image
     /// \param[in] output Buffer of the output image. 
     void cufft2d(float *image, unsigned int sx, unsigned int sy, float *output);
+
+    void convolve2d(float *image1, float* image2, unsigned int sx, unsigned int sy, float*output);
 }

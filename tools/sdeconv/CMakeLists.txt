@@ -22,6 +22,15 @@ SET(SRC_FILES
 ## #################################################################
 ## Exe generation
 ## #################################################################
+SET(NAME gaussian3dpsf)
+SET(FILE ${SRC_FILES} gaussian3dpsf.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
+
+SET(NAME gaussian2dpsf)
+SET(FILE ${SRC_FILES} gaussian2dpsf.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
 
 SET(NAME richardsonlucy2d)
 SET(FILE ${SRC_FILES} richardsonlucy2d.cpp)

@@ -21,5 +21,6 @@ add_subdirectory( sshape )
 
 if (${simglib_BUILD_CUDA})
   add_subdirectory( cugrad )
+  add_subdirectory( cudeconv )
   add_subdirectory( cudenoise )
 endif(${simglib_BUILD_CUDA})  
