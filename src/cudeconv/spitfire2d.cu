@@ -252,6 +252,10 @@ namespace SImg
         cudaMalloc ( &residue_image, N*sizeof(float));
         cudaMemcpy(cu_blurry_image, blurry_image, N*sizeof(float), cudaMemcpyHostToDevice); 
 
+        STimer timer;
+        timer.setObserver(new SObserverConsole());
+        timer.tic();
+
         // cuda threads blocs
         int blockSize1d = 256;
         int numBlocks1d = (N + blockSize1d - 1) / blockSize1d;
@@ -368,6 +372,8 @@ namespace SImg
 
         } // endfor (int iter = 0; iter < nb_iters_max; iter++)
 
+        cudaDeviceSynchronize();
+        timer.toc();
         // free output
         cufftDestroy(Planfft);
         cufftDestroy(Planifft);

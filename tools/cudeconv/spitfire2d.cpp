@@ -74,10 +74,10 @@ int main(int argc, char *argv[])
         // run deconvolution
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
-        SImg::tic();
+        //SImg::tic();
         float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy));
         SImg::cuda_spitfire2d_deconv(blurry_image, sx, sy, psf, deconv_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
-        SImg::toc();
+        //SImg::toc();
 
         SImageReader::write(new SImageFloat(deconv_image, sx, sy), outputImageFile);
 
