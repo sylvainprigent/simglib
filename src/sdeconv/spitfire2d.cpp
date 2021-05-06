@@ -12,6 +12,8 @@
 #include <sfft/SFFT.h>
 #include <sfft/SFFTConvolutionFilter.h>
 
+#include <simageio>
+
 #include "math.h"
 #ifdef SL_USE_OPENMP
 #include "omp.h"
@@ -287,6 +289,7 @@ namespace SImg
         float *adjoint_OTFReal = new float[sx * sy];
         shift2D(adjoint_PSF_shift, adjoint_OTFReal, sx, sy, int(-float(sx) / 2.0), int(-float(sy) / 2.0));
         delete[] adjoint_PSF_shift;
+        delete[] adjoint_PSF;
 
         // Splitting parameters
         float dual_step = SMath::max(0.01, SMath::min(0.1, regularization));

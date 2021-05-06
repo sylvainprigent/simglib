@@ -15,9 +15,9 @@ int main(int argc, char *argv[])
         cmdParser.addInputData("-i", "Input image file");
         cmdParser.addOutputData("-o", "Output image file");
 
-        cmdParser.addParameterFloat("-sigma", "PSF sigma (gaussian)", 2);
+        cmdParser.addParameterFloat("-sigma", "PSF sigma (gaussian)", 1.5);
         cmdParser.addParameterSelect("-method", "Deconvolution method 'SV' or 'HV", "HV");
-        cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 2);
+        cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 11);
         cmdParser.addParameterFloat("-weighting", "Weighting parameter", 0.6);
         cmdParser.addParameterInt("-niter", "Nb iterations", 200);
 

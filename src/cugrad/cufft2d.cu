@@ -32,7 +32,7 @@ namespace SImg
 
         int N = sx * sy;
         int Nfft = sx*(sy/2+1);
-        float scale =  1.0 / float(sx*sy);
+        float scale =  1.0 / (float(N*sy/2));
         float* d_image1;
         float* d_image2;
         float* d_output;

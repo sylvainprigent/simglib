@@ -6,6 +6,9 @@
 
 #include "spitfire2d.h"
 
+//#include <simage>
+//#include <simageio>
+
 #include <smanipulate>
 #include <score/SMath.h>
 #include <score/SException.h>
@@ -79,8 +82,8 @@ void d_dataterm(unsigned int Nfft, cufftComplex* OTF, cufftComplex* deconv_image
         float real_tmp = OTF[i].x * deconv_image_FT[i].x - OTF[i].y * deconv_image_FT[i].y - blurry_image_FT[i].x;
         float imag_tmp = OTF[i].x * deconv_image_FT[i].y + OTF[i].y * deconv_image_FT[i].x - blurry_image_FT[i].y;
 
-        residue_image_FT[i].x = adjoint_OTF[i].x * real_tmp - adjoint_OTF[i].y * imag_tmp;
-        residue_image_FT[i].y = adjoint_OTF[i].x * imag_tmp + adjoint_OTF[i].y * real_tmp;
+        residue_image_FT[i].x = (adjoint_OTF[i].x * real_tmp - adjoint_OTF[i].y * imag_tmp);
+        residue_image_FT[i].y = (adjoint_OTF[i].x * imag_tmp + adjoint_OTF[i].y * real_tmp);
     }
 }
 
@@ -106,7 +109,7 @@ void d_hv_primal_2d(unsigned int N, unsigned int sx, unsigned int sy, float prim
     pxym = pxm - 1;
 
     //tmp = deconv_image[p] - primal_step * (residue_image[p] / float(float(sx)*(float(sy)/2.0+1)));
-    tmp = deconv_image[p] - primal_step * (residue_image[p] / float(sx/2));
+    tmp = deconv_image[p] - primal_step * (residue_image[p] / float(N));
     dxx_adj = dual_image0[pxm] - 2 * dual_image0[p] + dual_image0[pxp];
     dyy_adj = dual_image1[pym] - 2 * dual_image1[p] + dual_image1[pyp];
     dxy_adj = dual_image2[p] - dual_image2[pxm] - dual_image2[pym] + dual_image2[pxym];
@@ -235,10 +238,10 @@ namespace SImg
         float* dual_image2;
         float* dual_image3;
         float* auxiliary_image;
+        float* residue_image;
         float* cu_deconv_image;
         float* cu_blurry_image;
-        float* residue_image;
-
+        
         cudaMalloc ( &dual_image0, N*sizeof(float));
         cudaMalloc ( &dual_image1, N*sizeof(float));
         cudaMalloc ( &dual_image2, N*sizeof(float));
@@ -249,10 +252,6 @@ namespace SImg
         cudaMalloc ( &residue_image, N*sizeof(float));
         cudaMemcpy(cu_blurry_image, blurry_image, N*sizeof(float), cudaMemcpyHostToDevice); 
 
-        STimer timer;
-        timer.setObserver(new SObserverConsole());
-        timer.tic();
-
         // cuda threads blocs
         int blockSize1d = 256;
         int numBlocks1d = (N + blockSize1d - 1) / blockSize1d;
@@ -261,7 +260,8 @@ namespace SImg
         dim3 gridSize2d = dim3((sx + 16 - 1) / 16, (sy + 16 - 1) / 16);
 
         d_hv_init_2d_buffers<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, cu_blurry_image, dual_image0, dual_image1, dual_image2, dual_image3);
-
+        //cudaDeviceSynchronize();
+        
         cufftComplex *blurry_image_FT;
         cufftComplex *deconv_image_FT;
         cufftComplex *residue_image_FT;
@@ -285,50 +285,60 @@ namespace SImg
         delete[] adjoint_OTFReal;
 
         // fft2d blurry_image -> blurry_image_FT
-        cufftHandle p1;
-        cufftPlan2d(&p1, sx, sy, CUFFT_R2C);
-        cufftExecR2C(p1, (cufftReal*)cu_blurry_image, (cufftComplex*)blurry_image_FT);
+        cudaDeviceSynchronize();
+        cufftHandle Planfft;
+        cufftPlan2d(&Planfft, sx, sy, CUFFT_R2C);
+        cufftExecR2C(Planfft, (cufftReal*)cu_blurry_image, (cufftComplex*)blurry_image_FT);
         // fft2d OTFReal -> OTF
-        cufftExecR2C(p1, (cufftReal*)cu_OTFReal, (cufftComplex*)OTF);
+        cufftExecR2C(Planfft, (cufftReal*)cu_OTFReal, (cufftComplex*)OTF);
         // fft2d adjoint_OTFReal -> adjoint_OTF
-        cufftExecR2C(p1, (cufftReal*)cu_adjoint_OTFReal, (cufftComplex*)adjoint_OTF);
-        cufftDestroy(p1);
+        cufftExecR2C(Planfft, (cufftReal*)cu_adjoint_OTFReal, (cufftComplex*)adjoint_OTF);
+        cudaDeviceSynchronize();
 
         cudaFree(cu_OTFReal);
         cudaFree(cu_adjoint_OTFReal);
 
-        cudaDeviceSynchronize();
-        d_hv_init_deconv_residu<<<numBlocks1dfft, blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT, blurry_image_FT);
-        cudaDeviceSynchronize();
         // Deconvolution process
         float inv_reg = 1.0 / regularization;
 
-        cufftHandle Planfft;
-        cufftPlan2d(&Planfft, sx, sy, CUFFT_R2C);
+
+        d_hv_init_deconv_residu<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT, blurry_image_FT);
+
         cufftHandle Planifft;
         cufftPlan2d(&Planifft, sx, sy, CUFFT_C2R);
-        cudaDeviceSynchronize();
+        //cudaDeviceSynchronize();
         for (unsigned int iter = 0; iter < niter; iter++)
         {
             // Primal optimization
             d_copy<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, auxiliary_image);
+            
             cudaDeviceSynchronize();
             cufftExecR2C(Planfft, (cufftReal*)cu_deconv_image, (cufftComplex*)deconv_image_FT);
             cudaDeviceSynchronize();
+
             d_copy_complex<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT);
+            //cudaDeviceSynchronize();
 
             // Data term
             d_dataterm<<<numBlocks1dfft,blockSize1d>>>(Nfft, OTF, deconv_image_FT, blurry_image_FT, residue_image_FT, adjoint_OTF);
-
             cudaDeviceSynchronize();
             cufftExecC2R(Planifft, (cufftComplex*)residue_image_FT, (cufftReal*)residue_image);
-            cudaDeviceSynchronize();
+            cudaDeviceSynchronize(); 
+            /*   
+            if (iter == 0){
+                float* residuCPU = new float[sx*sy];
+                cudaMemcpy(residuCPU, residue_image, N*sizeof(float), cudaMemcpyDeviceToHost);   
+        
+                SImageFloat* residuIm = new SImageFloat(residuCPU, sx, sy);
+                SImageReader::write(residuIm, "./bin/deconv/gpu_residue1.tif");
+            }
+            */
 
             // primal
             d_hv_primal_2d<<<gridSize2d, blockSize2d>>>(N, sx, sy, primal_step, primal_weight, primal_weight_comp, sqrt2, 
                                                        cu_deconv_image, residue_image, dual_image0, dual_image1, 
                                                        dual_image2, dual_image3);
-
+            //cudaDeviceSynchronize();
             // Stopping criterion
             if (verbose)
             {
@@ -343,16 +353,18 @@ namespace SImg
 
             // Dual optimization
             d_dual_2d_auxiliary<<<numBlocks1d, blockSize1d>>>(N, auxiliary_image, cu_deconv_image);
+            //cudaDeviceSynchronize();
 
             // dual    
             d_hv_2d_dual<<<gridSize2d, blockSize2d>>>(sx, sy, dual_weight, dual_weight_comp, sqrt2, 
                                                      auxiliary_image, dual_image0, 
                                                      dual_image1, dual_image2, dual_image3);
+            //cudaDeviceSynchronize();                                         
 
             // normalize
             d_hv_dual_2d_normalize<<<numBlocks1d, blockSize1d>>>(N, inv_reg, dual_image0, dual_image1, 
                                                                  dual_image2, dual_image3);
-
+            //cudaDeviceSynchronize();    
 
         } // endfor (int iter = 0; iter < nb_iters_max; iter++)
 
