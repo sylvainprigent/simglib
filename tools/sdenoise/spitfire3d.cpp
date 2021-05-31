@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
         cmdParser.addParameterInt("-niter", "Nb iterations", 200);
 
         cmdParser.addParameterBoolean("-verbose", "Print iterations to console", true);
-        cmdParser.setMan("Denoise a 2D image with the SPITFIR(e) algotithm");
+        cmdParser.setMan("Denoise a 3D image with the SPITFIR(e) algotithm");
         cmdParser.parse(2);
 
         std::string inputImageFile = cmdParser.getDataURI("-i");
@@ -30,21 +30,22 @@ int main(int argc, char *argv[])
         const std::string method = cmdParser.getParameterString("-method");
         const float regularization = cmdParser.getParameterFloat("-regularization");
         const float weighting = cmdParser.getParameterFloat("-weighting");
+        const float delta = cmdParser.getParameterFloat("-delta");
         const int niter = cmdParser.getParameterInt("-niter");
         const bool verbose = cmdParser.getParameterBool("-verbose");
 
         if (inputImageFile == ""){
-            observer->message("spitfire2d: Input image path is empty");
+            observer->message("spitfire3d: Input image path is empty");
             return 1;
         }
 
         if (verbose){
-            observer->message("spitfire2d: input image: " + inputImageFile);
-            observer->message("spitfire2d: output image: " + outputImageFile);
-            observer->message("spitfire2d: method: " + method);
-            observer->message("spitfire2d: regularization parameter: " + std::to_string(regularization));
-            observer->message("spitfire2d: weighting parameter: " + std::to_string(weighting));
-            observer->message("spitfire2d: nb iterations: " + std::to_string(niter));
+            observer->message("spitfire3d: input image: " + inputImageFile);
+            observer->message("spitfire3d: output image: " + outputImageFile);
+            observer->message("spitfire3d: method: " + method);
+            observer->message("spitfire3d: regularization parameter: " + std::to_string(regularization));
+            observer->message("spitfire3d: weighting parameter: " + std::to_string(weighting));
+            observer->message("spitfire3d: nb iterations: " + std::to_string(niter));
         }
 
         // Run process
@@ -53,9 +54,10 @@ int main(int argc, char *argv[])
         float* noisy_image = inputImage->getBuffer();
         unsigned int sx = inputImage->getSizeX();
         unsigned int sy = inputImage->getSizeY();
+        unsigned int sz = inputImage->getSizeZ();
         if (inputImage->getSizeZ() > 1 || inputImage->getSizeT(), inputImage->getSizeC())
         {
-            throw SException("spitfire2d can process only 2D gray scale images");
+            throw SException("spitfire3d can process only 3D gray scale images");
         }
 
         SObservable * observable = new SObservable();
@@ -64,18 +66,18 @@ int main(int argc, char *argv[])
         float* denoised_image;
         SImg::tic();
         if (method == "SV"){
-            SImg::spitfire2d_sv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, verbose, observable);
+            SImg::spitfire3d_sv(noisy_image, sx, sy, sz, denoised_image, regularization, weighting, niter, delta, verbose, observable);
         }
         else if (method == "HV")
         {
-            SImg::spitfire2d_hv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, verbose, observable);
+            SImg::spitfire3d_hv(noisy_image, sx, sy, sz, denoised_image, regularization, weighting, niter, delta, verbose, observable);
         }
         else{
             throw SException("spitfire2d: method must be SV or HV");
         }
         SImg::toc();
 
-        SImageReader::write(new SImageFloat(denoised_image, sx, sy), outputImageFile);
+        SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz), outputImageFile);
 
         delete inputImage;
         delete denoised_image;

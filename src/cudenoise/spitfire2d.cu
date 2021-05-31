@@ -247,9 +247,9 @@ namespace SImg{
         cudaMalloc ( &cu_noisy_image, N*sizeof(float));
         cudaMemcpy(cu_noisy_image, noisy_image, N*sizeof(float), cudaMemcpyHostToDevice); 
 
-        STimer timer;
-        timer.setObserver(new SObserverConsole());
-        timer.tic();
+        //STimer timer;
+        //timer.setObserver(new SObserverConsole());
+        //timer.tic();
 
         // cida threads blocs
         int blockSize1d = 256;
@@ -294,7 +294,7 @@ namespace SImg{
                                                    
         } // endfor (int iter = 0; iter < nb_iters_max; iter++)
         cudaDeviceSynchronize();
-        timer.toc();
+        //timer.toc();
         cudaFree(dual_images0);
         cudaFree(dual_images1);
         cudaFree(dual_images2);
@@ -340,9 +340,9 @@ namespace SImg{
         cudaMalloc ( &cu_noisy_image, N*sizeof(float));
         cudaMemcpy(cu_noisy_image, noisy_image, N*sizeof(float), cudaMemcpyHostToDevice); 
     
-        STimer timer;
-        timer.setObserver(new SObserverConsole());
-        timer.tic();
+        //STimer timer;
+        //timer.setObserver(new SObserverConsole());
+        //timer.tic();
 
         // cuda threads blocs
         int blockSize1d = 256;
@@ -387,7 +387,7 @@ namespace SImg{
                                                             dual_images2, dual_images3);    
         } // endfor (int iter = 0; iter < nb_iters_max; iter++)
         cudaDeviceSynchronize();
-        timer.toc();
+        //timer.toc();
         cudaFree(dual_images0);
         cudaFree(dual_images1);
         cudaFree(dual_images2);
