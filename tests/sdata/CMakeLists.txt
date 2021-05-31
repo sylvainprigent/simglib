@@ -37,7 +37,7 @@ foreach (test ${${PROJECT_NAME}_MAIN_SOURCES})
   get_filename_component(TName ${test} NAME_WE)
 
   add_executable(${TName} ${test})
-  target_link_libraries(${TName} sdata)
+  target_link_libraries(${TName})
 
   add_test(${TName} ${EXECUTABLE_OUTPUT_PATH}/${TName})
 

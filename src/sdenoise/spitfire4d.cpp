@@ -6,533 +6,452 @@
 
 #include "spitfire4d.h"
 
-#include <score/SMath.h>
+#include <score>
 #include "math.h"
 
-namespace SImg{
-
-void spitfire4d_sv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, const float& deltaz, const float& deltat, bool verbose, SObservable* observable)
+namespace SImg
 {
-    // get the image buffer and size
-    unsigned int w = sx;
-    unsigned int h = sy;
-    unsigned int d = sz;
-    unsigned int T = st; 
-    unsigned int buffer_size = w*h*d*T;
 
-    // get the average intensity
-    float Average_IN_i= 0.;
-    float Max_i = noisy_image[0];
-	for (int ind=0; ind<w*h*d*T; ind++)
+    void spitfire4d_sv(float *noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const float &deltaz, const float &deltat)
     {
-        Average_IN_i += noisy_image[ind];
-        if (noisy_image[ind] > Max_i){
-            Max_i = noisy_image[ind];  
-        }
+        SObservable *observable = new SObservable();
+        SObserverConsole *observer = new SObserverConsole();
+        observable->addObserver(observer);
+        spitfire4d_sv(noisy_image, sx, sy, sz, st, denoised_image, regularization, weighting, niter, deltaz, deltat, true, observable);
+        delete observer;
+        delete observable;
     }
-	Average_IN_i /= float(w*h*d*T);
 
-	// Splitting parameters
-	double dual_step = SMath::max(0.01, SMath::min(0.1, regularization));
-	
-	double primal_step = 0.99 / (0.5 + (16 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step); 
-	
-	double primal_weight = primal_step * weighting;
-	double primal_weight_comp = primal_step * (1 - weighting);
-	double dual_weight = dual_step * weighting;
-	double dual_weight_comp = dual_step * (1 - weighting);
-
-    // Initializations
-    denoised_image = new float[w*h*d*T];
-    float* dual_images0 = new float[w*h*d*T];
-    float* dual_images1 = new float[w*h*d*T];
-    float* dual_images2 = new float[w*h*d*T];
-    float* dual_images3 = new float[w*h*d*T];
-    float* dual_images4 = new float[w*h*d*T];
-    float* auxiliary_image = new float[w*h*d*T];
-
-    // Denoising process
-	float tmp, dx, dy, dz, dt, min_val=0., max_val=(float)(Max_i), dx_adj, dy_adj, dz_adj, dt_adj;
-	for (int iter = 0; iter < niter; iter++) 
+    void spitfire4d_hv(float *noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const float &deltaz, const float &deltat)
     {
-		// Primal optimization
-        for (unsigned int i = 0 ; i < buffer_size ; ++i){
-		    auxiliary_image[i] = denoised_image[i];
-        }
-
-        for (unsigned int x = 0 ; x < w ; ++x){
-            for (unsigned int y = 0 ; y < h ; ++y){
-                for (unsigned int z = 0 ; z < d ; ++z){
-                    for (unsigned int t = 0 ; t < T ; ++t){
-                
-                        unsigned int p = t + T*(z + d*(y + h*x)); 
-                        tmp = denoised_image[p] - primal_step * (denoised_image[p] - noisy_image[p]); 
-                        
-                        if (x > 0){
-                            unsigned int pxm = t + T*(z + d*(y + h*(x-1))); 
-                            dx_adj = dual_images0[pxm] - dual_images0[p];
-                        }
-                        else{
-                            dx_adj = dual_images0[p]; 
-                        }
-                        if (y > 0){
-                            unsigned int pym = t + T*(z + d*((y-1) + h*x)); 
-                            dy_adj = dual_images1[pym] - dual_images1[p];
-                        }
-                        else{
-                            dy_adj = dual_images1[p];
-                        }
-                        if (z > 0){
-                            unsigned int pzm = t + T*((z-1) + d*(y + h*x));
-                            dz_adj = deltaz*(dual_images2[pzm] - dual_images2[p]);
-                        }
-                        else{
-                            dz_adj = dual_images2[p];
-                        }
-                        if (t > 0){
-                            unsigned int ptm = t-1 + T*(z + d*(y + h*x));
-                            dt_adj = deltat*(dual_images3[ptm] - dual_images3[p]);
-                        }
-                        else{
-                            dt_adj = dual_images3[p];
-                        }
-                        
-                        tmp -= (primal_weight * (dx_adj + dy_adj + dz_adj + dt_adj) + primal_weight_comp * dual_images4[p]);
-                        denoised_image[p] = SMath::max(min_val, SMath::min(max_val, tmp));
-		            }
-                }
-            }
-        }
-
-        // iterations
-        if(verbose){
-            if (iter % int(SMath::max(1, niter / 10)) == 0){
-                observable->notifyProgress(100*(float(iter)/float(niter)));
-            }
-        }
-
-        // Dual optimization
-        for (unsigned int i = 0 ; i < buffer_size ; ++i)
-        {
-            auxiliary_image[i] = 2 * denoised_image[i] - auxiliary_image[i];
-        }
-
-        for (unsigned int x = 0 ; x < w ; ++x){
-            for (unsigned int y = 0 ; y < h ; ++y){
-                for (unsigned int z = 0 ; z < d ; ++z){
-                    for (unsigned int t = 0 ; t < T ; ++t){
-
-                        unsigned int p = t + T*(z + d*(y + h*x));
-
-                        if (x < w - 1) {
-                            unsigned int pxp = t + T*(z + d*(y + h*(x+1)));
-                            dx = auxiliary_image[pxp] - auxiliary_image[p];
-                            dual_images0[p] += dual_weight * dx;
-                        }
-                        if (y < h - 1) {
-                            unsigned int pyp = t + T*(z + d*(y+1 + h*x));
-                            dy = auxiliary_image[pyp] - auxiliary_image[p];
-                            dual_images1[p] += dual_weight * dy;
-                        }
-                        if (z < d - 1) {
-                            unsigned int pzp = t + T*(z+1 + d*(y + h*x));
-                            dz = deltaz*(auxiliary_image[pzp] - auxiliary_image[p]);
-                            dual_images2[p] += dual_weight * dz;
-                        }
-                        if (t < T - 1) {
-                            unsigned int ptp = t+1 + T*(z + d*(y + h*x));
-                            dt = deltat*(auxiliary_image[ptp] - auxiliary_image[p]);
-                            dual_images3[p] += dual_weight * dt;
-                        }
-                        dual_images4[p] += dual_weight_comp	* auxiliary_image[p];
-                    }
-                }
-            }
-		}
-
-        for (unsigned int i = 0 ; i < buffer_size ; ++i)
-		{
-			double tmp = SMath::max(1., 1. / regularization * sqrt(pow(dual_images0[i], 2.)
-											+ pow(dual_images1[i], 2.)
-											+ pow(dual_images2[i], 2.)
-											+ pow(dual_images3[i], 2.)
-											+ pow(dual_images4[i], 2.)
-												));
-			dual_images0[i] /= tmp;
-			dual_images1[i] /= tmp;
-			dual_images2[i] /= tmp;
-			dual_images3[i] /= tmp;
-			dual_images4[i] /= tmp;
-		}
-    } // enditer
-
-    // normalize intensity
-    float Average_IN_o = 0.;
-    for (unsigned int ind=0; ind<buffer_size; ind++){
-        Average_IN_o += denoised_image[ind];
-    }
-    Average_IN_o /= float(buffer_size);
-
-    for (int ind=0; ind<w*h*d*T; ind++){
-        denoised_image[ind] += (Average_IN_i-Average_IN_o);
+        SObservable *observable = new SObservable();
+        SObserverConsole *observer = new SObserverConsole();
+        observable->addObserver(observer);
+        spitfire4d_hv(noisy_image, sx, sy, sz, st, denoised_image, regularization, weighting, niter, deltaz, deltat, true, observable);
+        delete observer;
+        delete observable;
     }
 
-    if (verbose){
-        observable->notifyProgress(100);
-    }
-}
-
-void spitfire4d_hv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, const float& deltaz, const float& deltat, bool verbose, SObservable* observable)
-{
+    void spitfire4d_sv(float *noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const float &deltaz, const float &deltat, bool verbose, SObservable *observable)
+    {
         // get the image buffer and size
-    unsigned int w = sx;
-    unsigned int h = sy;
-    unsigned int d = sz;
-    unsigned int T = st; 
-    unsigned int buffer_size = w*h*d*T;
+        unsigned int N = sx * sy * sz * st;
 
-    // get the average intensity
-    float Average_IN_i= 0.;
-    float Max_i = noisy_image[0];
-	for (unsigned int ind=0; ind<w*h*d*T; ind++)
-    {
-        Average_IN_i += noisy_image[ind];
-        if (noisy_image[ind] > Max_i){
-            Max_i = noisy_image[ind];  
+        // get the average intensity
+        float Average_IN_i = 0.;
+        float Max_i = noisy_image[0];
+        for (int ind = 0; ind < N; ind++)
+        {
+            Average_IN_i += noisy_image[ind];
+            if (noisy_image[ind] > Max_i)
+            {
+                Max_i = noisy_image[ind];
+            }
         }
-    }
-	Average_IN_i /= float(w*h*d*T);
+        Average_IN_i /= float(sx * sy * sz * st);
 
-    // Splitting parameters
-    float sqrt2 = sqrt(2.);
-	float dual_step = SMath::max(0.001, SMath::min(0.01, regularization));
-	float primal_step = 0.99 / (0.5 + (256 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step); 
-	float primal_weight = primal_step * weighting;
-	float primal_weight_comp = primal_step * (1 - weighting);
-	float dual_weight = dual_step * weighting;
-	float dual_weight_comp = dual_step * (1 - weighting);
+        // Splitting parameters
+        double dual_step = SMath::max(0.01, SMath::min(0.1, regularization));
 
-    // Initializations
-    denoised_image = new float[w*h*d*T];
-    float* dual_images0 = new float[w*h*d*T];
-    float* dual_images1 = new float[w*h*d*T];
-    float* dual_images2 = new float[w*h*d*T];
-    float* dual_images3 = new float[w*h*d*T];
-    float* dual_images4 = new float[w*h*d*T];
-    float* dual_images5 = new float[w*h*d*T];
-    float* dual_images6 = new float[w*h*d*T];
-    float* dual_images7 = new float[w*h*d*T];
-    float* dual_images8 = new float[w*h*d*T];
-    float* dual_images9 = new float[w*h*d*T];
-    float* dual_images10 = new float[w*h*d*T];
-    float* auxiliary_image = new float[w*h*d*T];
+        double primal_step = 0.99 / (0.5 + (16 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step);
 
-    for (unsigned int i = 0 ; i < buffer_size ; ++i)
-    {
-        denoised_image[i] = noisy_image[i];
-    }
+        double primal_weight = primal_step * weighting;
+        double primal_weight_comp = primal_step * (1 - weighting);
+        double dual_weight = dual_step * weighting;
+        double dual_weight_comp = dual_step * (1 - weighting);
+        float inv_reg = 1.0 / regularization;
 
-    // Denoising process
-	float tmp, dxx, dyy, dzz, dtt, dxy, dyz, dty, dzx, dtx, dtz, min_val=0., max_val=(float)(Max_i), dxx_adj,
-			dyy_adj, dzz_adj, dtt_adj, dxy_adj, dyz_adj, dzx_adj, dtx_adj, dty_adj, dtz_adj;
-	unsigned int p, pxm, pym, pzm, ptm, pxp, pyp, pzp, ptp, pxym, pyzm, pxzm, pxtm, pytm, pztm;		
-	for (int iter = 0; iter < niter; iter++) 
-	{
-        // Primal optimization
-        //std::cout << "Primal optimization" << std::endl;
-        for (unsigned int i = 0 ; i < buffer_size ; ++i){
-		    auxiliary_image[i] = denoised_image[i];
+        // Initializations
+        float *dual_images0 = new float[N];
+        float *dual_images1 = new float[N];
+        float *dual_images2 = new float[N];
+        float *dual_images3 = new float[N];
+        float *dual_images4 = new float[N];
+        float *auxiliary_image = new float[N];
+
+#pragma omp parallel for
+        for (unsigned int i = 0; i < N; ++i)
+        {
+            denoised_image[i] = noisy_image[i];
         }
 
-        for (unsigned int x = 0 ; x < w ; ++x){
-            for (unsigned int y = 0 ; y < h ; ++y){
-                for (unsigned int z = 0 ; z < d ; ++z){
-                    for (unsigned int t = 0 ; t < T ; ++t){
+        // Denoising process
+        for (int iter = 0; iter < niter; iter++)
+        {
+// Primal optimization
+#pragma omp parallel for
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                auxiliary_image[i] = denoised_image[i];
+            }
 
-                        p = t + T*(z + d*(y + h*x));
-                        pxm = t + T*(z + d*(y + h*(x-1)));
-                        pym = t + T*(z + d*(y-1 + h*x));
-                        pzm = t + T*(z-1 + d*(y + h*x));
-                        ptm = t-1 + T*(z + d*(y + h*x));
+#pragma omp parallel for
+            for (unsigned int x = 1; x < sx - 1; ++x)
+            {
+                for (unsigned int y = 1; y < sy - 1; ++y)
+                {
+                    for (unsigned int z = 1; z < sz - 1; ++z)
+                    {
+                        for (unsigned int t = 1; t < st - 1; ++t)
+                        {
 
-                        tmp = denoised_image[p] - primal_step * (denoised_image[p] - noisy_image[p]); 
+                            unsigned int p = t + st * (z + sz * (y + sy * x));
+                            unsigned int pxm = t + st * (z + sz * (y + sy * (x - 1)));
+                            unsigned int pym = t + st * (z + sz * ((y - 1) + sy * x));
+                            unsigned int pzm = t + st * ((z - 1) + sz * (y + sy * x));
+                            unsigned int ptm = t - 1 + st * (z + sz * (y + sy * x));
 
-                        dxx_adj = dyy_adj = dzz_adj = dtt_adj = dxy_adj = dyz_adj = dzx_adj = dty_adj = dtx_adj = dtz_adj = 0.;
-                        // Diagonal terms
-                        if ((x > 0) && (x < w - 1)){
-                            pxp = t + T*(z + d*(y + h*(x+1)));
-                            dxx_adj = dual_images0[pxm] - 2 * dual_images0[p] + dual_images0[pxp];
-                        }
+                            float tmp = denoised_image[p] - primal_step * (denoised_image[p] - noisy_image[p]);
+                            float dx_adj = dual_images0[pxm] - dual_images0[p];
+                            float dy_adj = dual_images1[pym] - dual_images1[p];
+                            float dz_adj = deltaz * (dual_images2[pzm] - dual_images2[p]);
+                            float dt_adj = deltat * (dual_images3[ptm] - dual_images3[p]);
 
-                        if ((y > 0) && (y < h - 1)){
-                            pyp = t + T*(z + d*(y+1 + h*x));
-                            dyy_adj = dual_images1[pym] - 2 * dual_images1[p] + dual_images1[pyp];
+                            tmp -= (primal_weight * (dx_adj + dy_adj + dz_adj + dt_adj) + primal_weight_comp * dual_images4[p]);
+                            if (tmp > 1.0)
+                            {
+                                denoised_image[p] = 1.0;
+                            }
+                            else if (tmp < 0.0)
+                            {
+                                denoised_image[p] = 0.0;
+                            }
+                            else
+                            {
+                                denoised_image[p] = tmp;
+                            }
                         }
-
-                        if ((z > 0) && (z < d - 1)){
-                            pzp = t + T*(z+1 + d*(y + h*x));
-                            dzz_adj = (deltaz*deltaz)*(dual_images2[pzm] - 2 * dual_images2[p] + dual_images2[pzp]);
-                        }
-
-                        if ((t > 0) && (t < T - 1)){
-                            ptp = t+1 + T*(z + d*(y + h*x));
-                            dtt_adj = (deltat)*(dual_images3[ptm] - 2 * dual_images3[p] + dual_images3[ptp]);
-                        }
-
-                        // Other terms
-                        if ((x == 0) && (y == 0)){
-                            dxy_adj = dual_images4[p];
-                        }
-                        if ((x > 0) && (y == 0)){
-                            dxy_adj = dual_images4[p] - dual_images4[pxm];
-                        }
-                        if ((x == 0) && (y > 0)){
-                            dxy_adj = dual_images4[p] - dual_images4[pym];
-                        }
-                        if ((x > 0) && (y > 0)){
-                            pxym = t + T*(z + d*(y-1 + h*(x-1)));
-                            dxy_adj = dual_images4[p] - dual_images4[pxm]
-                                    - dual_images4[pym]
-                                    + dual_images4[pxym];
-                        }
-
-                        if ((y == 0) && (z == 0)){
-                            dyz_adj = dual_images5[p];
-                        }
-                        if ((y > 0) && (z == 0)){
-                            dyz_adj = dual_images5[p] - dual_images5[pym];
-                        }
-                        if ((y == 0) && (z > 0)){
-                            dyz_adj = dual_images5[p] - dual_images5[pzm];
-                        }
-                        if ((y > 0) && (z > 0)){
-                            pyzm = t + T*(z-1 + d*(y-1 + h*x));
-                            dyz = deltaz*(dual_images5[p] - dual_images5[pym]
-                                    - dual_images5[pzm]
-                                    + dual_images5[pyzm]);
-                        }
-
-                        if ((z == 0) && (x == 0)){
-                            dzx_adj = dual_images6[p];
-                        }
-                        if ((z > 0) && (x == 0)){
-                            dzx_adj = dual_images6[p] - dual_images5[pzm];
-                        }
-                        if ((z == 0) && (x > 0)){
-                            dzx_adj = dual_images6[pxm] - dual_images6[p];
-                        }
-                        if ((z > 0) && (x > 0)){
-                            pxzm = t + T*(z-1 + d*(y + h*(x-1)));
-                            dzx_adj = deltaz*(dual_images6[p] - dual_images6[pzm]
-                                    - dual_images6[pxm]
-                                    + dual_images6[pxzm]);
-                        }
-
-                        if ((t == 0) && (x == 0)){
-                            dtx_adj = dual_images7[p];
-                        }
-                        if ((t > 0) && (x == 0)){
-                            dtx_adj = dual_images7[p] - dual_images7[ptm];
-                        }
-                        if ((t == 0) && (x > 0)){
-                            dtx_adj = dual_images7[pxm] - dual_images7[p];
-                        }
-                        if ((t > 0) && (x > 0)){
-                            pxtm = t-1 + T*(z + d*(y + h*(x-1)));
-                            dzx_adj = deltat*(dual_images7[p] - dual_images7[ptm]
-                                    - dual_images7[pxm]
-                                    + dual_images7[pxtm]);
-                        }
-
-                        if ((t == 0) && (y == 0)){
-                            dty_adj = dual_images8[p];
-                        }
-                        if ((t > 0) && (y == 0)){
-                            dty_adj = dual_images8[p] - dual_images8[ptm];
-                        }
-                        if ((t == 0) && (y > 0)){
-                            dty_adj = dual_images8[pym] - dual_images8[p];
-                        }
-                        if ((t > 0) && (y > 0)){
-                            pytm = t-1 + T*(z + d*(y-1 + h*x));
-                            dtx_adj = deltat*(dual_images8[p] - dual_images8[ptm]
-                                    - dual_images8[pym]
-                                    + dual_images8[pytm]);
-                        }
-                        
-                        if ((t == 0) && (z == 0)){
-                            dtz_adj = dual_images9[p];
-                        }
-                        if ((t > 0) && (z == 0)){
-                            dtz_adj = dual_images9[p] - dual_images9[ptm];
-                        }
-                        if ((t == 0) && (z > 0)){
-                            dtz_adj = dual_images9[pzm] - dual_images9[p];
-                        }
-                        if ((t > 0) && (z > 0)){
-                            pztm = t-1 + T*(z-1 + d*(y + h*x));
-                            dtz_adj = deltat*(dual_images9[p] - dual_images9[ptm]
-                                    - dual_images9[pzm]
-                                    + dual_images9[pztm]);
-                        }
-                        
-                        tmp -= (primal_weight
-                                * (dxx_adj + dyy_adj + dzz_adj + dtt_adj 
-                                    + sqrt2 * (dxy_adj + dyz_adj + dzx_adj) + sqrt2 * (dtx_adj + dty_adj + dtz_adj))
-                                + primal_weight_comp * dual_images10[p]);
-                        denoised_image[p] = SMath::max(min_val, SMath::min(max_val, tmp));
                     }
                 }
             }
-		}
 
-        // iterations
-        //std::cout << "iterations" << std::endl;
-        if(verbose){
-            if (iter % int(SMath::max(1, niter / 10)) == 0){
-                observable->notifyProgress(100*(float(iter)/float(niter)));
+            // Stopping criterion
+            if (verbose)
+            {
+                int iter_n = niter / 10;
+                if (iter_n < 1)
+                    iter_n = 1;
+                if (iter % iter_n == 0)
+                {
+                    observable->notifyProgress(100 * (float(iter) / float(niter)));
+                }
+            }
+
+            // Dual optimization
+#pragma omp parallel for
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                auxiliary_image[i] = 2 * denoised_image[i] - auxiliary_image[i];
+            }
+
+#pragma omp parallel for
+            for (unsigned int x = 1; x < sx - 1; ++x)
+            {
+                for (unsigned int y = 1; y < sy - 1; ++y)
+                {
+                    for (unsigned int z = 1; z < sz - 1; ++z)
+                    {
+                        for (unsigned int t = 1; t < st - 1; ++t)
+                        {
+
+                            unsigned int p = t + st * (z + sz * (y + sy * x));
+                            unsigned int pxp = t + st * (z + sz * (y + sy * (x + 1)));
+                            unsigned int pyp = t + st * (z + sz * (y + 1 + sy * x));
+                            unsigned int pzp = t + st * (z + 1 + sz * (y + sy * x));
+                            unsigned int ptp = t + 1 + st * (z + sz * (y + sy * x));
+
+                            dual_images0[p] += dual_weight * (auxiliary_image[pxp] - auxiliary_image[p]);
+                            dual_images1[p] += dual_weight * (auxiliary_image[pyp] - auxiliary_image[p]);
+                            dual_images2[p] += dual_weight * (deltaz * (auxiliary_image[pzp] - auxiliary_image[p]));
+                            dual_images3[p] += dual_weight * (deltat * (auxiliary_image[ptp] - auxiliary_image[p]));
+                            dual_images4[p] += dual_weight_comp * auxiliary_image[p];
+                        }
+                    }
+                }
+            }
+
+#pragma omp parallel for
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                float tmp = inv_reg * sqrt(dual_images0[i] * dual_images0[i] + dual_images1[i] * dual_images1[i] + dual_images2[i] * dual_images2[i] +
+                                           dual_images3[i] * dual_images3[i] + dual_images4[i] * dual_images4[i]);
+                if (tmp > 1.0)
+                {
+                    float inv_tmp = 1.0 / tmp;
+                    dual_images0[i] *= inv_tmp;
+                    dual_images1[i] *= inv_tmp;
+                    dual_images2[i] *= inv_tmp;
+                    dual_images3[i] *= inv_tmp;
+                    dual_images4[i] *= inv_tmp;
+                }
+            }
+        } // enditer
+
+        // normalize intensity
+        float Average_IN_o = 0.;
+        for (unsigned int ind = 0; ind < N; ind++)
+        {
+            Average_IN_o += denoised_image[ind];
+        }
+        Average_IN_o /= float(N);
+
+#pragma omp parallel for
+        for (int ind = 0; ind < N; ind++)
+        {
+            denoised_image[ind] += (Average_IN_i - Average_IN_o);
+        }
+
+        if (verbose)
+        {
+            observable->notifyProgress(100);
+        }
+    }
+
+    void spitfire4d_hv(float *noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const float &deltaz, const float &deltat, bool verbose, SObservable *observable)
+    {
+        // get the image buffer and size
+        unsigned int N = sx * sy * sz * st;
+
+        // get the average intensity
+        float Average_IN_i = 0.;
+        float Max_i = noisy_image[0];
+        for (unsigned int ind = 0; ind < N; ind++)
+        {
+            Average_IN_i += noisy_image[ind];
+            if (noisy_image[ind] > Max_i)
+            {
+                Max_i = noisy_image[ind];
             }
         }
+        Average_IN_i /= float(N);
 
-        // Dual optimization
-        //std::cout << "Dual optimization" << std::endl;
-        for (unsigned int i = 0 ; i < buffer_size ; ++i){
-		    auxiliary_image[i] = 2 * denoised_image[i] - auxiliary_image[i];
+        // Splitting parameters
+        float sqrt2 = sqrt(2.);
+        float dual_step = SMath::max(0.001, SMath::min(0.01, regularization));
+        float primal_step = 0.99 / (0.5 + (256 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step);
+        float primal_weight = primal_step * weighting;
+        float primal_weight_comp = primal_step * (1 - weighting);
+        float dual_weight = dual_step * weighting;
+        float dual_weight_comp = dual_step * (1 - weighting);
+        float inv_reg = 1.0 / regularization;
+
+        // Initializations
+        float *dual_images0 = new float[N];
+        float *dual_images1 = new float[N];
+        float *dual_images2 = new float[N];
+        float *dual_images3 = new float[N];
+        float *dual_images4 = new float[N];
+        float *dual_images5 = new float[N];
+        float *dual_images6 = new float[N];
+        float *dual_images7 = new float[N];
+        float *dual_images8 = new float[N];
+        float *dual_images9 = new float[N];
+        float *dual_images10 = new float[N];
+        float *auxiliary_image = new float[N];
+
+#pragma omp parallel for
+        for (unsigned int i = 0; i < N; ++i)
+        {
+            denoised_image[i] = noisy_image[i];
         }
 
-        for (unsigned int x = 0 ; x < w ; ++x){
-            for (unsigned int y = 0 ; y < h ; ++y){
-                for (unsigned int z = 0 ; z < d ; ++z){
-                    for (unsigned int t = 0 ; t < T ; ++t){
+        // Denoising process
+        //float tmp, dxx, dyy, dzz, dtt, dxy, dyz, dty, dzx, dtx, dtz, min_val = 0., max_val = (float)(Max_i), dxx_adj,
+        //                                                             dyy_adj, dzz_adj, dtt_adj, dxy_adj, dyz_adj, dzx_adj, dtx_adj, dty_adj, dtz_adj;
+        //unsigned int p, pxm, pym, pzm, ptm, pxp, pyp, pzp, ptp, pxym, pyzm, pxzm, pxtm, pytm, pztm;
+        for (int iter = 0; iter < niter; iter++)
+        {
+// Primal optimization
+//std::cout << "Primal optimization" << std::endl;
+#pragma omp parallel for
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                auxiliary_image[i] = denoised_image[i];
+            }
+#pragma omp parallel for
+            for (unsigned int x = 1; x < sx - 1; ++x)
+            {
+                for (unsigned int y = 1; y < sy - 1; ++y)
+                {
+                    for (unsigned int z = 1; z < sz - 1; ++z)
+                    {
+                        for (unsigned int t = 1; t < st - 1; ++t)
+                        {
 
-                        p = t + T*(z + d*(y + h*x));
-                        pxp = t + T*(z + d*(y + h*(x+1)));
-                        pyp = t + T*(z + d*(y+1 + h*x));
-                        pzp = t + T*(z+1 + d*(y + h*x));
-                        ptp = t+1 + T*(z + d*(y + h*x));
-                        pxm = t + T*(z + d*(y + h*(x-1)));
-                        pym = t + T*(z + d*(y-1 + h*x));
-                        pzm = t + T*(z-1 + d*(y + h*x));
-                        ptm = t-1 + T*(z + d*(y + h*x));
+                            unsigned int p = t + st * (z + sz * (y + sy * x));
+                            unsigned int pxm = t + st * (z + sz * (y + sy * (x - 1)));
+                            unsigned int pym = t + st * (z + sz * (y - 1 + sy * x));
+                            unsigned int pzm = t + st * (z - 1 + sz * (y + sy * x));
+                            unsigned int ptm = t - 1 + st * (z + sz * (y + sy * x));
+                            unsigned int pxp = t + st * (z + sz * (y + sy * (x + 1)));
+                            unsigned int pyp = t + st * (z + sz * (y + 1 + sy * x));
+                            unsigned int pzp = t + st * (z + 1 + sz * (y + sy * x));
+                            unsigned int ptp = t + 1 + st * (z + sz * (y + sy * x));
 
-                        if ((x > 0) && (x < w - 1)) {
-                            dxx = auxiliary_image[pxp] - 2 * auxiliary_image[p] + auxiliary_image[pxm];
+                            float tmp = denoised_image[p] - primal_step * (denoised_image[p] - noisy_image[p]);
+
+                            // Diagonal terms
+                            float dxx_adj = dual_images0[pxm] - 2 * dual_images0[p] + dual_images0[pxp];
+                            float dyy_adj = dual_images1[pym] - 2 * dual_images1[p] + dual_images1[pyp];
+                            float dzz_adj = (deltaz * deltaz) * (dual_images2[pzm] - 2 * dual_images2[p] + dual_images2[pzp]);
+                            float dtt_adj = (deltat) * (dual_images3[ptm] - 2 * dual_images3[p] + dual_images3[ptp]);
+
+                            // Other terms
+                            unsigned int pxym = t + st * (z + sz * (y - 1 + sy * (x - 1)));
+                            float dxy_adj = dual_images4[p] - dual_images4[pxm] - dual_images4[pym] + dual_images4[pxym];
+
+                            unsigned int pyzm = t + st * (z - 1 + sz * (y - 1 + sy * x));
+                            float dyz_adj = deltaz * (dual_images5[p] - dual_images5[pym] - dual_images5[pzm] + dual_images5[pyzm]);
+
+                            unsigned int pxzm = t + st * (z - 1 + sz * (y + sy * (x - 1)));
+                            float dzx_adj = deltaz * (dual_images6[p] - dual_images6[pzm] - dual_images6[pxm] + dual_images6[pxzm]);
+
+                            unsigned int pxtm = t - 1 + st * (z + sz * (y + sy * (x - 1)));
+                            float dtx_adj = deltat * (dual_images7[p] - dual_images7[ptm] - dual_images7[pxm] + dual_images7[pxtm]);
+
+                            unsigned int pytm = t - 1 + st * (z + sz * (y - 1 + sy * x));
+                            float dty_adj = deltat * (dual_images8[p] - dual_images8[ptm] - dual_images8[pym] + dual_images8[pytm]);
+
+                            unsigned int pztm = t - 1 + st * (z - 1 + sz * (y + sy * x));
+                            float dtz_adj = deltat * (dual_images9[p] - dual_images9[ptm] - dual_images9[pzm] + dual_images9[pztm]);
+
+                            tmp -= (primal_weight * (dxx_adj + dyy_adj + dzz_adj + dtt_adj + sqrt2 * (dxy_adj + dyz_adj + dzx_adj) + sqrt2 * (dtx_adj + dty_adj + dtz_adj)) + primal_weight_comp * dual_images10[p]);
+
+                            if (tmp > 1.0)
+                            {
+                                denoised_image[p] = 1.0;
+                            }
+                            else if (tmp < 0.0)
+                            {
+                                denoised_image[p] = 0.0;
+                            }
+                            else
+                            {
+                                denoised_image[p] = tmp;
+                            }
+                        }
+                    }
+                }
+            }
+
+            // iterations
+            if (verbose)
+            {
+                int iter_n = niter / 10;
+                if (iter_n < 1)
+                    iter_n = 1;
+                if (iter % iter_n == 0)
+                {
+                    observable->notifyProgress(100 * (float(iter) / float(niter)));
+                }
+            }
+
+            // Dual optimization
+            //std::cout << "Dual optimization" << std::endl;
+#pragma omp parallel for
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                auxiliary_image[i] = 2 * denoised_image[i] - auxiliary_image[i];
+            }
+#pragma omp parallel for
+            for (unsigned int x = 1; x < sx-1; ++x)
+            {
+                for (unsigned int y = 1; y < sy-1; ++y)
+                {
+                    for (unsigned int z = 1; z < sz-1; ++z)
+                    {
+                        for (unsigned int t = 1; t < st-1; ++t)
+                        {
+
+                            unsigned int p = t + st * (z + sz * (y + sy * x));
+                            unsigned int pxp = t + st * (z + sz * (y + sy * (x + 1)));
+                            unsigned int pyp = t + st * (z + sz * (y + 1 + sy * x));
+                            unsigned int pzp = t + st * (z + 1 + sz * (y + sy * x));
+                            unsigned int ptp = t + 1 + st * (z + sz * (y + sy * x));
+                            unsigned int pxm = t + st * (z + sz * (y + sy * (x - 1)));
+                            unsigned int pym = t + st * (z + sz * (y - 1 + sy * x));
+                            unsigned int pzm = t + st * (z - 1 + sz * (y + sy * x));
+                            unsigned int ptm = t - 1 + st * (z + sz * (y + sy * x));
+
+                            float dxx = auxiliary_image[pxp] - 2 * auxiliary_image[p] + auxiliary_image[pxm];
                             dual_images0[p] += dual_weight * dxx;
-                        }
-                        if ((y > 0) && (y < h - 1)) {
-                            dyy = auxiliary_image[pyp] - 2 * auxiliary_image[p] + auxiliary_image[pym];
+                            float dyy = auxiliary_image[pyp] - 2 * auxiliary_image[p] + auxiliary_image[pym];
                             dual_images1[p] += dual_weight * dyy;
-                        }
-                        if ((z > 0) && (z < d - 1)) {
-                            dzz = (deltaz*deltaz)*(auxiliary_image[pzp] - 2 * auxiliary_image[p] + auxiliary_image[pzm]);
+                            float dzz = (deltaz * deltaz) * (auxiliary_image[pzp] - 2 * auxiliary_image[p] + auxiliary_image[pzm]);
                             dual_images2[p] += dual_weight * dzz;
-                        }
-                        if ((t > 0) && (t < T - 1)) {
-                            dtt = (deltat*deltat)*(auxiliary_image[ptp]
-                                    - 2 * auxiliary_image[p]
-                                    + auxiliary_image[ptm]);
+                            float dtt = (deltat * deltat) * (auxiliary_image[ptp] - 2 * auxiliary_image[p] + auxiliary_image[ptm]);
                             dual_images3[p] += dual_weight * dtt;
-                        }						
-                        if ((x < w - 1) && (y < w - 1)) {
-                            unsigned int pxyp = t + T*(z + d*(y+1 + h*(x+1)));
-                            dxy = auxiliary_image[pxyp]
-                                    - auxiliary_image[pxp]
-                                    - auxiliary_image[pyp]
-                                    + auxiliary_image[p];
+                            
+                            unsigned int pxyp = t + st * (z + sz * (y + 1 + sy * (x + 1)));
+                            float dxy = auxiliary_image[pxyp] - auxiliary_image[pxp] - auxiliary_image[pyp] + auxiliary_image[p];
                             dual_images4[p] += sqrt2 * dual_weight * dxy;
-                        }
-                        if ((y < h - 1) && (z < d - 1)) {
-                            unsigned int pyzp = t + T*(z+1 + d*(y+1 + h*x));
-                            dyz = deltaz*(auxiliary_image[pyzp]
-                                    - auxiliary_image[pyp]
-                                    - auxiliary_image[pzp]
-                                    + auxiliary_image[p]);
+                            
+                            unsigned int pyzp = t + st * (z + 1 + sz * (y + 1 + sy * x));
+                            float dyz = deltaz * (auxiliary_image[pyzp] - auxiliary_image[pyp] - auxiliary_image[pzp] + auxiliary_image[p]);
                             dual_images5[p] += sqrt2 * dual_weight * dyz;
-                        }
-                        if ((z < d - 1) && (x < w - 1)) {
-                            unsigned int pxzp = t + T*(z+1 + d*(y + h*(x+1)));
-                            dzx = deltaz*(auxiliary_image[pxzp]
-                                    - auxiliary_image[pxp]
-                                    - auxiliary_image[pzp]
-                                    + auxiliary_image[p]);
+                            
+                            unsigned int pxzp = t + st * (z + 1 + sz * (y + sy * (x + 1)));
+                            float dzx = deltaz * (auxiliary_image[pxzp] - auxiliary_image[pxp] - auxiliary_image[pzp] + auxiliary_image[p]);
                             dual_images6[p] += sqrt2 * dual_weight * dzx;
-                        }		
-                        if ((t < T - 1) && (x < w - 1)) {
-                            unsigned int pxtp = t+1 + T*(z + d*(y + h*(x+1)));
-                            dtx = deltat*(auxiliary_image[pxtp]
-                                    - auxiliary_image[pxp]
-                                    - auxiliary_image[ptp]
-                                    + auxiliary_image[p]);
+                            
+                            unsigned int pxtp = t + 1 + st * (z + sz * (y + sy * (x + 1)));
+                            float dtx = deltat * (auxiliary_image[pxtp] - auxiliary_image[pxp] - auxiliary_image[ptp] + auxiliary_image[p]);
                             dual_images7[p] += sqrt2 * dual_weight * dtx;
-                        }			
-                        if ((t < T - 1) && (y < h - 1)) {
-                            unsigned int pytp = t+1 + T*(z + d*(y+1 + h*x));
-                            dty = deltat*(auxiliary_image[pytp]
-                                    - auxiliary_image[pyp]
-                                    - auxiliary_image[ptp]
-                                    + auxiliary_image[p]);
+                            
+                            unsigned int pytp = t + 1 + st * (z + sz * (y + 1 + sy * x));
+                            float dty = deltat * (auxiliary_image[pytp] - auxiliary_image[pyp] - auxiliary_image[ptp] + auxiliary_image[p]);
                             dual_images8[p] += sqrt2 * dual_weight * dty;
-                        }
-                        if ((t < T - 1) && (z < d - 1)) {
-                            unsigned int pztp = t+1 + T*(z+1 + d*(y + h*x));
-                            dtz = deltat*(auxiliary_image[pztp]
-                                    - auxiliary_image[pzp]
-                                    - auxiliary_image[ptp]
-                                    + auxiliary_image[p]);
+                            
+                            unsigned int pztp = t + 1 + st * (z + 1 + sz * (y + sy * x));
+                            float dtz = deltat * (auxiliary_image[pztp] - auxiliary_image[pzp] - auxiliary_image[ptp] + auxiliary_image[p]);
                             dual_images9[p] += sqrt2 * dual_weight * dtz;
+ 
+                            dual_images10[p] += dual_weight_comp * auxiliary_image[p];
                         }
-                                
-                        dual_images10[p] += dual_weight_comp * auxiliary_image[p];
                     }
                 }
             }
-		}
+#pragma omp parallel for
+            for (unsigned int i = 0; i < N; ++i)
+            {
+                float tmp = inv_reg * sqrt( dual_images0[i]*dual_images0[i] + dual_images1[i]*dual_images1[i] + dual_images2[i]*dual_images2[i] + 
+                                            dual_images3[i]*dual_images3[i] + dual_images4[i]*dual_images4[i] + dual_images5[i]*dual_images5[i] + 
+                                            dual_images6[i]*dual_images6[i] + dual_images7[i]*dual_images7[i] + dual_images8[i]*dual_images8[i] + 
+                                            dual_images9[i]*dual_images9[i] + dual_images10[i]*dual_images10[i]);
+                if (tmp > 1.0)
+                {
+                    float inv_tmp = 1.0/tmp;
+                    dual_images0[i] *= inv_tmp;
+                    dual_images1[i] *= inv_tmp;
+                    dual_images2[i] *= inv_tmp;
+                    dual_images3[i] *= inv_tmp;
+                    dual_images4[i] *= inv_tmp;
+                    dual_images5[i] *= inv_tmp;
+                    dual_images6[i] *= inv_tmp;
+                    dual_images7[i] *= inv_tmp;
+                    dual_images8[i] *= inv_tmp;
+                    dual_images9[i] *= inv_tmp;
+                    dual_images10[i] *= inv_tmp;
+                }
+            }
+        } // end iter
 
-        for (unsigned int i = 0 ; i < buffer_size ; ++i)
-		{
-			double tmp = SMath::max(1.,
-					1. / regularization
-							* sqrt(
-  									  pow(dual_images0[i], 2.)
-									+ pow(dual_images1[i], 2.)
-									+ pow(dual_images2[i], 2.)
-									+ pow(dual_images3[i], 2.)
-									+ pow(dual_images4[i], 2.)
-									+ pow(dual_images5[i], 2.)
-									+ pow(dual_images6[i], 2.)
-									+ pow(dual_images7[i], 2.)
-									+ pow(dual_images8[i], 2.)
-									+ pow(dual_images9[i], 2.)
-										));
-					
-			dual_images0[i] /= tmp;
-			dual_images1[i] /= tmp;
-			dual_images2[i] /= tmp;
-			dual_images3[i] /= tmp;
-			dual_images4[i] /= tmp;
-			dual_images5[i] /= tmp;
-			dual_images6[i] /= tmp;
-			dual_images7[i] /= tmp;
-			dual_images8[i] /= tmp;
-			dual_images9[i] /= tmp;
-			
-		}
-    } // end iter
+        // normalize intensity
+        float Average_IN_o = 0.;
+        for (unsigned int ind = 0; ind < N; ind++)
+        {
+            Average_IN_o += denoised_image[ind];
+        }
+        Average_IN_o /= float(N);
 
-    // normalize intensity
-    float Average_IN_o = 0.;
-    for (unsigned int ind=0; ind<buffer_size; ind++){
-        Average_IN_o += denoised_image[ind];
+        for (unsigned int ind = 0; ind < N; ind++)
+        {
+            denoised_image[ind] += (Average_IN_i - Average_IN_o);
+        }
+        if (verbose)
+        {
+            observable->notifyProgress(100);
+        }
     }
-    Average_IN_o /= float(buffer_size);
-
-    for (unsigned int ind=0; ind<w*h*d*T; ind++){
-        denoised_image[ind] += (Average_IN_i-Average_IN_o);
-    }
-    if (verbose){
-        observable->notifyProgress(100);
-    }
-
-}
 
 }

@@ -6,9 +6,12 @@
 
 #pragma once
 
-#include <score/SObservable.h>
+#include "../score/SObservable.h"
 
 namespace SImg{
+
+void spitfire3d_sv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, const float& delta);
+void spitfire3d_hv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, const float& delta);
 
 void spitfire3d_sv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, const float& delta, bool verbose, SObservable* observable);
 void spitfire3d_hv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, const float& delta, bool verbose, SObservable* observable);

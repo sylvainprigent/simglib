@@ -1,5 +1,4 @@
 #include "../src/scli/SCliException.h"
-#include "../src/scli/SObserverConsole.h"
 #include "../src/scli/SCliParameter.h"
 #include "../src/scli/SCliParameterList.h"
 #include "../src/scli/SCliParser.h"

@@ -23,7 +23,6 @@ SET(SRC_FILES
   SCliSelect.cpp
   SCliStringOp.cpp
   SCliTimer.cpp
-  SObserverConsole.cpp
   STimer.cpp
 )
 
@@ -36,7 +35,6 @@ SET(HEADERS_FILES
   SCliSelect.h
   SCliStringOp.h
   SCliTimer.h
-  SObserverConsole.h
   STimer.h
 )
   

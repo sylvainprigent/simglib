@@ -9,7 +9,7 @@
 #include "SCliStringOp.h"
 
 #include "STimer.h"
-#include "SObserverConsole.h"
+#include "score/SObserverConsole.h"
 
 STimer::STimer(){
     m_observer = nullptr;

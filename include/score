@@ -5,6 +5,7 @@
 #include "../src/score/SMath.h"
 #include "../src/score/SObservable.h"
 #include "../src/score/SObserver.h"
+#include "../src/score/SObserverConsole.h"
 #include "../src/score/SPath.h"
 #include "../src/score/SProcess.h"
 #include "../src/score/SSingleton.h"

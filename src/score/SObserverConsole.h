@@ -7,13 +7,13 @@
 #pragma once
 
 #include <string>
-#include "scliExport.h"
+#include "scoreExport.h"
 
 #include "score/SObserver.h"
 
 /// \class SProcess
 /// \brief Define a common interface for all processes
-class SCLI_EXPORT SObserverConsole : public SObserver{
+class SCORE_EXPORT SObserverConsole : public SObserver{
 
 public:
     SObserverConsole();

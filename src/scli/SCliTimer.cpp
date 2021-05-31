@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "SCliTimer.h"
-#include "SObserverConsole.h"
+#include "score/SObserverConsole.h"
 #include "STimer.h"
 #include "score/SStringOp.h"
 

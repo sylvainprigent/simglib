@@ -13,7 +13,30 @@
 #include "omp.h"
 #endif
 
+#include <score>
+
 namespace SImg{
+
+void spitfire2d_sv(float* noisy_image, unsigned int sx, unsigned int sy, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter)
+{
+    SObservable* observable = new SObservable();
+    SObserverConsole* observer = new SObserverConsole();
+    observable->addObserver(observer);
+    spitfire2d_sv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, true, observable);
+    delete observer;
+    delete observable;
+}
+
+void spitfire2d_hv(float* noisy_image, unsigned int sx, unsigned int sy, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter)
+{
+    SObservable* observable = new SObservable();
+    SObserverConsole* observer = new SObserverConsole();
+    observable->addObserver(observer);
+    spitfire2d_hv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, true, observable);
+    delete observer;
+    delete observable;
+}
+
 
 void spitfire2d_sv(float* noisy_image, unsigned int sx, unsigned int sy, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, bool verbose, SObservable* observable  )
 {

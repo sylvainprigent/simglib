@@ -21,6 +21,7 @@ SET(SRC_FILES
   SFile.cpp
   SMath.cpp
   SObserver.cpp
+  SObserverConsole.cpp
   SObservable.cpp
   SPath.cpp
   SProcess.cpp
@@ -36,6 +37,7 @@ SET(HEADERS_FILES
   SFile.h
   SMath.h
   SObserver.h
+  SObserverConsole.h
   SObservable.h
   SPath.h
   SProcess.h
@@ -53,6 +55,13 @@ add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADERS_FILES})
 
 target_link_libraries(${PROJECT_NAME} ${SL_LIBRARIES})
 
+INSTALL(TARGETS ${PROJECT_NAME}
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+install(FILES ${HEADERS_FILES} DESTINATION include/simglib/${PROJECT_NAME})
+install(FILES ../../build/scoreExport.h DESTINATION include/simglib/${PROJECT_NAME})
 
 ## #################################################################
 ## Export header file
