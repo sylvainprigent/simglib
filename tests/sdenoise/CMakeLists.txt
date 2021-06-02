@@ -20,9 +20,9 @@ enable_testing()
 ## #################################################################
 
 set(${PROJECT_NAME}_MAIN_SOURCES
-  TestSpitfire2dHV.cpp
-  TestSpitfire3dHV.cpp
-  TestSpitfire4dHV.cpp
+  TestSpitfireDenoise2dHV.cpp
+  TestSpitfireDenoise3dHV.cpp
+  TestSpitfireDenoise4dHV.cpp
 )
 
 ## ###################################################################
