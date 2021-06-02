@@ -58,6 +58,10 @@ namespace SImg
         for (unsigned int i = 0; i < N; i++)
         {
             denoised_image[i] = noisy_image[i];
+            dual_images0[i] = 0.0;
+            dual_images1[i] = 0.0;
+            dual_images2[i] = 0.0;
+            dual_images3[i] = 0.0;
         }
 
         // Denoising process
@@ -197,12 +201,16 @@ namespace SImg
         float *dual_images6 = (float *)malloc(sizeof(float) * N);
         float *auxiliary_image = (float *)malloc(sizeof(float) * N);
 
-        // Denoising process
-        //float tmp, dxx, dyy, dzz, dxy, dyz, dzx, min_val, max_val, dxx_adj,
-        //    dyy_adj, dzz_adj, dxy_adj, dyz_adj, dzx_adj;
-        //min_val = 0.0;
-        //max_val = 1.0;
-        //int p, pxm, pym, pzm, pxp, pyp, pzp;
+        for (unsigned int i = 0 ; i < N ; ++i){
+            denoised_image[i] = noisy_image[i];
+            dual_images0[i] = 0.0;
+            dual_images1[i] = 0.0;
+            dual_images2[i] = 0.0;
+            dual_images3[i] = 0.0;
+            dual_images4[i] = 0.0;
+            dual_images5[i] = 0.0;
+            dual_images6[i] = 0.0;
+        }
 
         for (int iter = 0; iter < niter; iter++)
         {

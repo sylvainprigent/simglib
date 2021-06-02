@@ -22,6 +22,7 @@ enable_testing()
 set(${PROJECT_NAME}_MAIN_SOURCES
   TestSpitfire2dHV.cpp
   TestSpitfire3dHV.cpp
+  TestSpitfire4dHV.cpp
 )
 
 ## ###################################################################
@@ -41,6 +42,8 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/../dataset/Cell02_HELA_SD_Tubtracker_CY5_15p_M6P
 endif()
 
 set(SAMPLE2DDENOISED ${PROJECT_SOURCE_DIR}/../dataset/celegans_denoised.tif)
+set(SAMPLE3DDENOISED ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dHV_ref.tif)
+set(SAMPLE4DDENOISED ${PROJECT_SOURCE_DIR}/results/denoised_4d.txt)
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/sdenoiseTestConfig.h.in)
   configure_file(sdenoiseTestConfig.h.in ${CMAKE_BINARY_DIR}/sdenoiseTestConfig.h)

@@ -12,6 +12,7 @@
 #include "SImageIOException.h"
 #include "STiffIO.h"
 #include "SImIO.h"
+#include "STxtIO.h"
 
 
 bool endsWith(std::string const & value, std::string const & ending)
@@ -35,6 +36,10 @@ SImage* SImageReader::read(std::string file, char precision){
         STiffIO reader;
         return reader.read(file, precision);
     }
+    else if (endsWith(file, ".txt") || endsWith(file, ".TXT") ){
+        STxtIO reader;    
+        return reader.read(file, precision);    
+    }
     else{
         //SCImgIO reader;
         //return reader.read(file, precision);
@@ -52,6 +57,10 @@ void SImageReader::write(SImage* image, std::string file){
     }
     else if (endsWith(file, ".tif") || endsWith(file, ".tiff") || endsWith(file, ".TIFF") || endsWith(file, ".TIF")){
         STiffIO reader;
+        return reader.write(image, file);
+    }
+    else if ( endsWith(file, ".txt") || endsWith(file, ".TXT") ){
+        STxtIO reader;
         return reader.write(image, file);
     }
     else{

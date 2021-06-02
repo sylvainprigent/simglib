@@ -65,6 +65,9 @@ void spitfire2d_sv(float* noisy_image, unsigned int sx, unsigned int sy, float* 
 #pragma omp parallel for 
     for (unsigned int i = 0 ; i < N ; i++){
         denoised_image[i] = noisy_image[i];
+        dual_images0[i] = 0.0;
+        dual_images1[i] = 0.0;
+        dual_images2[i] = 0.0;
     }
 
     // Deconvolution process
