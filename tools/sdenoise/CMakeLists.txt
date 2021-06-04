@@ -28,4 +28,4 @@ target_link_libraries(${NAME} score sdenoise scli simage simageio smanipulate ${
 SET(NAME spitfiredenoise3d)
 SET(FILE ${SRC_FILES} spitfire3d.cpp)
 add_executable(${NAME} ${FILE} )
-target_link_libraries(${NAME} score sdenoise scli simage simageio ${SL_LIBRARIES})
+target_link_libraries(${NAME} score sdenoise scli simage simageio smanipulate ${SL_LIBRARIES})

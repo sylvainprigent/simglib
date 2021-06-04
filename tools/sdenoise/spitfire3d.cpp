@@ -2,6 +2,8 @@
 #include <scli>
 #include <simageio>
 #include <sdenoise>
+#include <smanipulate>
+#include "math.h"
 
 
 int main(int argc, char *argv[])
@@ -49,37 +51,52 @@ int main(int argc, char *argv[])
         }
 
         // Run process
-
         SImageFloat* inputImage = dynamic_cast<SImageFloat*>(SImageReader::read(inputImageFile, 32));
         float* noisy_image = inputImage->getBuffer();
         unsigned int sx = inputImage->getSizeX();
         unsigned int sy = inputImage->getSizeY();
         unsigned int sz = inputImage->getSizeZ();
-        if (inputImage->getSizeZ() > 1 || inputImage->getSizeT(), inputImage->getSizeC())
+        observer->message("spitfire3d: input image size: " + std::to_string(sx) + ", " + std::to_string(sy) + ", " + std::to_string(sz));
+        if (inputImage->getSizeT() > 1 || inputImage->getSizeC() > 1)
         {
             throw SException("spitfire3d can process only 3D gray scale images");
         }
+        float imax = inputImage->getMax();
+        float imin = inputImage->getMin();
 
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
 
-        float* denoised_image;
+        // min max normalize intensities
+        float* noisy_image_norm = new float[sx*sy*sz];
+        SImg::normMinMax(noisy_image, sx, sy, sz, 1, 1, noisy_image_norm);
+        delete inputImage;
+
+        float* denoised_image = new float[sx*sy*sz];
         SImg::tic();
         if (method == "SV"){
-            SImg::spitfire3d_sv(noisy_image, sx, sy, sz, denoised_image, regularization, weighting, niter, delta, verbose, observable);
+            SImg::spitfire3d_sv(noisy_image_norm, sx, sy, sz, denoised_image, pow(2, -regularization), weighting, niter, delta, verbose, observable);
         }
         else if (method == "HV")
         {
-            SImg::spitfire3d_hv(noisy_image, sx, sy, sz, denoised_image, regularization, weighting, niter, delta, verbose, observable);
+            observer->message("spitfire3d: use method HV");
+            SImg::spitfire3d_hv(noisy_image_norm, sx, sy, sz, denoised_image, pow(2, -regularization), weighting, niter, delta, verbose, observable);
         }
         else{
-            throw SException("spitfire2d: method must be SV or HV");
+            throw SException("spitfire3d: method must be SV or HV");
+        }
+
+        // normalize back intensities
+        #pragma omp parallel for
+        for (unsigned int i = 0 ; i < sx*sy*sz ; ++i)
+        {
+            denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
         }
         SImg::toc();
 
         SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz), outputImageFile);
 
-        delete inputImage;
+        delete[] noisy_image_norm;
         delete denoised_image;
         delete observable;
     }

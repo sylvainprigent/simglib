@@ -23,7 +23,9 @@ set(${PROJECT_NAME}_MAIN_SOURCES
   TestSpitfireDenoise2dHV.cpp
   TestSpitfireDenoise2dSV.cpp
   TestSpitfireDenoise3dHV.cpp
+  TestSpitfireDenoise3dSV.cpp
   TestSpitfireDenoise4dHV.cpp
+  TestSpitfireDenoise4dSV.cpp
 )
 
 ## ###################################################################
@@ -45,7 +47,10 @@ endif()
 set(SAMPLE2DDENOISED ${PROJECT_SOURCE_DIR}/../dataset/celegans_denoised.tif)
 set(SAMPLE2DDENOISEDSV ${PROJECT_SOURCE_DIR}/results/TestSpitfire2dSV_ref.tif)
 set(SAMPLE3DDENOISED ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dHV_ref.tif)
+set(SAMPLE3DDENOISEDSV ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dSV_ref.tif)
 set(SAMPLE4DDENOISED ${PROJECT_SOURCE_DIR}/results/denoised_4d.txt)
+set(SAMPLE4DDENOISEDSV ${PROJECT_SOURCE_DIR}/results/denoised_4d_sv.txt)
+
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/sdenoiseTestConfig.h.in)
   configure_file(sdenoiseTestConfig.h.in ${CMAKE_BINARY_DIR}/sdenoiseTestConfig.h)
