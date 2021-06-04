@@ -2,6 +2,7 @@
 #include <scli>
 #include <simageio>
 #include <sdenoise>
+#include <smanipulate>
 
 
 int main(int argc, char *argv[])
@@ -11,8 +12,8 @@ int main(int argc, char *argv[])
     {
         // Parse inputs
         SCliParser cmdParser(argc, argv);
-        cmdParser.addInputData("-i", "Input image file");
-        cmdParser.addOutputData("-o", "Output image file");
+        cmdParser.addInputData("-i", "Input image file (txt)");
+        cmdParser.addOutputData("-o", "Output image file (txt)");
 
         cmdParser.addParameterSelect("-method", "Deconvolution method 'SV' or 'HV", "HV");
         cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 2);
@@ -31,6 +32,8 @@ int main(int argc, char *argv[])
         const std::string method = cmdParser.getParameterString("-method");
         const float regularization = cmdParser.getParameterFloat("-regularization");
         const float weighting = cmdParser.getParameterFloat("-weighting");
+        const float deltaz = cmdParser.getParameterFloat("-deltaz");
+        const float deltat = cmdParser.getParameterFloat("-deltat");
         const int niter = cmdParser.getParameterInt("-niter");
         const bool verbose = cmdParser.getParameterBool("-verbose");
 
@@ -54,31 +57,40 @@ int main(int argc, char *argv[])
         float* noisy_image = inputImage->getBuffer();
         unsigned int sx = inputImage->getSizeX();
         unsigned int sy = inputImage->getSizeY();
-        if (inputImage->getSizeZ() > 1 || inputImage->getSizeT(), inputImage->getSizeC())
+        unsigned int sz = inputImage->getSizeZ();
+        unsigned int st = inputImage->getSizeT();
+        if (inputImage->getSizeC() > 1)
         {
-            throw SException("spitfire2d can process only 3D gray scale images");
+            throw SException("spitfire4d can process only 3D gray scale images");
         }
+        float imax = inputImage->getMax();
+        float imin = inputImage->getMin();
 
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
 
-        float* denoised_image;
+                // min max normalize intensities
+        float* noisy_image_norm = new float[sx*sy*sz*st];
+        SImg::normMinMax(noisy_image, sx, sy, sz, st, 1, noisy_image_norm);
+        delete inputImage;
+
+        float* denoised_image = new float[sx*sy*sz*st];
         SImg::tic();
         if (method == "SV"){
-            SImg::spitfire2d_sv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, verbose, observable);
+            SImg::spitfire4d_sv(noisy_image_norm, sx, sy, sz, st, denoised_image, regularization, weighting, niter, deltaz, deltat, verbose, observable);
         }
         else if (method == "HV")
         {
-            SImg::spitfire2d_hv(noisy_image, sx, sy, denoised_image, regularization, weighting, niter, verbose, observable);
+            SImg::spitfire4d_hv(noisy_image_norm, sx, sy, sz, st, denoised_image, regularization, weighting, niter, deltaz, deltat, verbose, observable);
         }
         else{
-            throw SException("spitfire2d: method must be SV or HV");
+            throw SException("spitfire4d: method must be SV or HV");
         }
         SImg::toc();
 
-        SImageReader::write(new SImageFloat(denoised_image, sx, sy), outputImageFile);
+        SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz, st), outputImageFile);
 
-        delete inputImage;
+        delete[] noisy_image_norm;
         delete denoised_image;
         delete observable;
     }

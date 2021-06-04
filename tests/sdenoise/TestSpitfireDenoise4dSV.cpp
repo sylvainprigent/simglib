@@ -61,10 +61,9 @@ int main(int argc, char *argv[])
     SImg::toc();
     delete STimerAccess::instance();
 
-    SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz, st), "./bin/denoise4d/denoised_4d_sv.txt");
+    //SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz, st), "./bin/denoise4d/denoised_4d_sv.txt");
 
     // calculate error with the reference image
-    /*
     std::cout << "calculate error:" << std::endl;
     SImageFloat *resultImage = dynamic_cast<SImageFloat *>(SImageReader::read(SAMPLE4DDENOISEDSV, 32));
     float *b1 = denoised_image;
@@ -97,6 +96,5 @@ int main(int argc, char *argv[])
     {
         return 1;
     }
-    */
     return 0;
 }
