@@ -1,4 +1,5 @@
 #include "../src/sdeconv/spitfire2d.h"
+#include "../src/sdeconv/spitfire3d.h"
 #include "../src/sdeconv/srichardsonlucy.h"
 #include "../src/sdeconv/sutils.h"
 #include "../src/sdeconv/swiener.h"
