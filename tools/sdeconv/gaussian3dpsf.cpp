@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
         float* buffer_out = new float[sx*sy*sz];
         SImg::gaussian_psf_3d(buffer_out, sx, sy, sz, sigmaxy, sigmaxy, sigmaz);
 
-        SImageFloat* image = new SImageFloat(buffer_out, sx, sy);
+        SImageFloat* image = new SImageFloat(buffer_out, sx, sy, sz);
         SImageReader::write(image, outputImageFile);
 
     }

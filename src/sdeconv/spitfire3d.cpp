@@ -102,8 +102,6 @@ namespace SImg
         {
             deconv_image_FT[i][0] = blurry_image_FT[i][0];
             deconv_image_FT[i][1] = blurry_image_FT[i][1];
-            residue_image_FT[i][0] = blurry_image_FT[i][0];
-            residue_image_FT[i][1] = blurry_image_FT[i][1];
         }
 
         float inv_reg = 1.0 / regularization;
@@ -125,13 +123,6 @@ namespace SImg
                 auxiliary_image[i] = deconv_image[i];
             }
             fftwf_execute(Planfft);
-
-#pragma omp parallel for
-            for (int i = 0; i < Nfft; i++)
-            {
-                residue_image_FT[i][0] = deconv_image_FT[i][0];
-                residue_image_FT[i][1] = deconv_image_FT[i][1];
-            }
 
             // Data term
 #pragma omp parallel for
@@ -159,7 +150,7 @@ namespace SImg
                         unsigned int pym = p - sz;
                         unsigned int pzm = p - 1;
 
-                        float tmp = deconv_image[p] - primal_step * (deconv_image[p] - blurry_image[p]);
+                        float tmp = deconv_image[p] - primal_step * residue_image[p] / float(N);
 
                         float dx_adj = dual_images0[pxm] - dual_images0[p];
                         float dy_adj = dual_images1[pym] - dual_images1[p];
@@ -371,13 +362,6 @@ namespace SImg
             }
             fftwf_execute(Planfft);
 
-#pragma omp parallel for
-            for (int i = 0; i < Nfft; i++)
-            {
-                residue_image_FT[i][0] = deconv_image_FT[i][0];
-                residue_image_FT[i][1] = deconv_image_FT[i][1];
-            }
-
             // Data term
 #pragma omp parallel for
             for (int i = 0; i < Nfft; i++)
@@ -407,7 +391,7 @@ namespace SImg
                         unsigned int pyp = p + sz;
                         unsigned int pzp = p + 1;
 
-                        float tmp = deconv_image[p] - primal_step * (deconv_image[p] - blurry_image[p]);
+                        float tmp = deconv_image[p] - primal_step * residue_image[p] / float(N);
 
                         float dxx_adj = dual_images0[pxm] - 2 * dual_images0[p] + dual_images0[pxp];
                         float dyy_adj = dual_images1[pym] - 2 * dual_images1[p] + dual_images1[pyp];

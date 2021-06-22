@@ -82,7 +82,7 @@ int main(int argc, char *argv[])
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
         SImg::tic();
-        float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy));
+        float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy*sz));
         SImg::spitfire3d_deconv(blurry_image, sx, sy, sz, psf, deconv_image, pow(2, -regularization), weighting, delta, niter, method, verbose, observable);
         SImg::toc();
 

@@ -131,12 +131,14 @@ namespace SImg
             fftwf_execute(Planfft);
             //fft2D(deconv_image, deconv_image_FT, sx, sy);
 
+/*
 #pragma omp parallel for
             for (int i = 0; i < Nfft; i++)
             {
                 residue_image_FT[i][0] = deconv_image_FT[i][0];
                 residue_image_FT[i][1] = deconv_image_FT[i][1];
             }
+            */
 
             // Data term
 #pragma omp parallel for
@@ -365,12 +367,14 @@ namespace SImg
             }
             fftwf_execute(Planfft);
 
+/*
 #pragma omp parallel for
             for (int i = 0; i < Nfft; i++)
             {
                 residue_image_FT[i][0] = deconv_image_FT[i][0];
                 residue_image_FT[i][1] = deconv_image_FT[i][1];
             }
+            */
 
             // Data term
 #pragma omp parallel for
