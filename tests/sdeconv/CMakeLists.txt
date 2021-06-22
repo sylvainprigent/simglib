@@ -20,10 +20,13 @@ enable_testing()
 ## #################################################################
 
 set(${PROJECT_NAME}_MAIN_SOURCES
+  TestRichardsonLucy2d.cpp
+  TestRichardsonLucy3d.cpp
   TestSpitfireDeconv2dHV.cpp
   TestSpitfireDeconv2dSV.cpp
   TestSpitfireDeconv3dHV.cpp
   TestSpitfireDeconv3dSV.cpp
+  TestWiener2d.cpp
 )
 
 ## ###################################################################
@@ -44,9 +47,12 @@ endif()
 set(SAMPLE2DDECONV ${PROJECT_SOURCE_DIR}/../dataset/TestSpitfire2dHV_ref.tif)
 set(SAMPLE2DDECONVSV ${PROJECT_SOURCE_DIR}/results/TestSpitfire2dSV_ref.tif)
 set(SAMPLE2DDECONVHV ${PROJECT_SOURCE_DIR}/results/TestSpitfire2dHV_ref.tif)
+set(SAMPLE2DDECONVRL ${PROJECT_SOURCE_DIR}/results/TestRichardsonLucy2d_ref.tif)
+set(SAMPLE2DDECONVW ${PROJECT_SOURCE_DIR}/results/TestWiener2d_ref.tif)
 set(SAMPLE3DDECONV ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dHV_ref.tif)
 set(SAMPLE3DDECONVSV ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dSV_ref.tif)
 set(SAMPLE3DDECONVHV ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dHV_ref.tif)
+set(SAMPLE3DDECONVRL ${PROJECT_SOURCE_DIR}/results/TestRichardsonLucy3d_ref.tif)
 
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/sdeconvTestConfig.h.in)
