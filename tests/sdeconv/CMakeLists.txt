@@ -27,6 +27,7 @@ set(${PROJECT_NAME}_MAIN_SOURCES
   TestSpitfireDeconv3dHV.cpp
   TestSpitfireDeconv3dSV.cpp
   TestWiener2d.cpp
+  TestWiener3d.cpp
 )
 
 ## ###################################################################
@@ -53,6 +54,8 @@ set(SAMPLE3DDECONV ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dHV_ref.tif)
 set(SAMPLE3DDECONVSV ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dSV_ref.tif)
 set(SAMPLE3DDECONVHV ${PROJECT_SOURCE_DIR}/results/TestSpitfire3dHV_ref.tif)
 set(SAMPLE3DDECONVRL ${PROJECT_SOURCE_DIR}/results/TestRichardsonLucy3d_ref.tif)
+set(SAMPLE3DDECONVW ${PROJECT_SOURCE_DIR}/results/TestWiener3d_ref.tif)
+
 
 
 if(EXISTS ${PROJECT_SOURCE_DIR}/sdeconvTestConfig.h.in)

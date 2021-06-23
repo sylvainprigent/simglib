@@ -37,10 +37,21 @@ SET(FILE ${SRC_FILES} richardsonlucy2d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
 
+
+SET(NAME richardsonlucy3d)
+SET(FILE ${SRC_FILES} richardsonlucy3d.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sfft smanipulate simage simageio scli)
+
 SET(NAME wiener2d)
 SET(FILE ${SRC_FILES} wiener2d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
+
+SET(NAME wiener3d)
+SET(FILE ${SRC_FILES} wiener3d.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sfft smanipulate simage simageio scli)
 
 SET(NAME wienerairyscan2d)
 SET(FILE ${SRC_FILES} wienerairyscan2d.cpp)
