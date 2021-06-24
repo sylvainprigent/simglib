@@ -7,12 +7,11 @@
 #include "spitfire2d.h"
 
 #include "math.h"
+#include <score>
 
 #ifdef SL_USE_OPENMP
 #include "omp.h"
 #endif
-
-#include <score>
 
 namespace SImg{
 

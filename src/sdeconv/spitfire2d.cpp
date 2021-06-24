@@ -12,8 +12,6 @@
 #include <sfft/SFFT.h>
 #include <sfft/SFFTConvolutionFilter.h>
 
-#include <simageio>
-
 #include "math.h"
 #ifdef SL_USE_OPENMP
 #include "omp.h"

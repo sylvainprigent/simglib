@@ -6,8 +6,8 @@
 
 #include "spitfire4d.h"
 
-#include <score>
 #include "math.h"
+#include <score>
 
 namespace SImg
 {

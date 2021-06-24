@@ -7,6 +7,7 @@
 #include "SCliUtils.h"
 
 #include <stdio.h>  /* defines FILENAME_MAX */
+#include <string.h>
 #if defined(_WIN32)
 #define BiOS "windows"
 #include <direct.h>
@@ -26,7 +27,7 @@ std::string SCliUtils::getCurentPath(){
 }
 
 std::string SCliUtils::getFileSeparator(){
-    if (BiOS == "windows"){
+    if ( strcmp(BiOS, "windows") == 0){
         return "\\";
     }
     return "/";

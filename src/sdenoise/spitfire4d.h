@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <score/SObservable.h>
+#include "../score/SObservable.h"
 
 namespace SImg{
 
