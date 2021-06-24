@@ -9,12 +9,15 @@
 #include "SImageStats.h"
 #include "SImageFloat.h"
 
-SImageStats::SImageStats() : SImageProcess(){
-    m_processName = "SImageStats";
+SImageStats::SImageStats(){
     m_processPrecision = 32;
     m_processZ = true;
     m_processT = true;
     m_processC = true;
+}
+
+void SImageStats::setInput(SImage* image){
+    m_input = image;
 }
 
 float SImageStats::positiveMin(){

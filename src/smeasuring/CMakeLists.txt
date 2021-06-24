@@ -29,7 +29,7 @@ SET(HEADERS_FILES
 
 add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADERS_FILES})
 
-target_link_libraries(${PROJECT_NAME} SCore SImage SRoi SManipulate SFiltering ${SL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} score simage sroi smanipulate sfiltering ${SL_LIBRARIES})
 
 
 ## #################################################################

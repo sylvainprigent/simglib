@@ -8,18 +8,25 @@
 
 #include "simageExport.h"
 #include "SImage.h"
-#include "SImageProcess.h"
 
 /// \class SImageStats
 /// \brief Calculate stats on images.
-class SIMAGE_EXPORT SImageStats : public SImageProcess{
+class SIMAGE_EXPORT SImageStats{
 
 public:
     SImageStats();
     ~SImageStats();
 
+    void setInput(SImage* image);
+
 public:
     float positiveMin();
     float normL2();
 
+protected:
+    SImage* m_input;
+    char m_processPrecision;
+    bool m_processZ;
+    bool m_processT;
+    bool m_processC;
 };

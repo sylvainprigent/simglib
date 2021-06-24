@@ -6,7 +6,6 @@
 
 #include "spitfire2d.h"
 
-#include <score/SMath.h>
 #include "math.h"
 
 #ifdef SL_USE_OPENMP

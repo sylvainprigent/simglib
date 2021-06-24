@@ -25,7 +25,7 @@ SET(SRC_FILES
 SET(NAME gaussian3dpsf)
 SET(FILE ${SRC_FILES} gaussian3dpsf.cpp)
 add_executable(${NAME} ${FILE})
-target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
+target_link_libraries(${NAME} ${SL_LIBRARIES} score simage sdeconv spadding sfft smanipulate simageio scli)
 
 SET(NAME gaussian2dpsf)
 SET(FILE ${SRC_FILES} gaussian2dpsf.cpp)
