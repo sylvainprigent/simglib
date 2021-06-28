@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <score/SObservable.h>
+#include "../score/SObservable.h"
 
 namespace SImg
 {
@@ -23,6 +23,10 @@ namespace SImg
     /// \param[in] verbose True to emit progress information
     /// \param[in] observable Pointer to the observable object for verbose
     void spitfire2d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, bool verbose, SObservable *observable);
+
+    /// \brief use default observable as command line observer
+    void spitfire2d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter);
+
 
     /// \brief Sparse hessian variation deconvolution
     /// \param[in] blurry_image Buffer of the input blurry image
@@ -50,5 +54,8 @@ namespace SImg
     /// \param[in] verbose True to emit progress information
     /// \param[in] observable Pointer to the observable object for verbose
     void spitfire2d_deconv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable);
+
+    /// \brief use default observable as command line observer
+    void spitfire2d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter);
 
 }

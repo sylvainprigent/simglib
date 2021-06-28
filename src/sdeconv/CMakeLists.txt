@@ -45,7 +45,7 @@ INSTALL(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
-install(FILES ${HEADERS_FILES} DESTINATION include/simglib/sdenoise)
+install(FILES ${HEADERS_FILES} DESTINATION include/simglib/sdeconv)
 
 ## #################################################################
 ## Export header file

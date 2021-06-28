@@ -7,10 +7,8 @@
 #include "spitfire2d.h"
 
 #include <smanipulate>
-#include <score/SMath.h>
-#include <score/SException.h>
-#include <sfft/SFFT.h>
-#include <sfft/SFFTConvolutionFilter.h>
+#include <sfft>
+#include <score>
 
 #include "math.h"
 #ifdef SL_USE_OPENMP
@@ -19,6 +17,16 @@
 
 namespace SImg
 {
+
+    void spitfire2d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter)
+    {
+        SObservable* observable = new SObservable();
+        SObserverConsole* observer = new SObserverConsole();
+        observable->addObserver(observer);
+        spitfire2d_deconv_sv(blurry_image, sx, sy, psf, deconv_image, regularization, weighting, niter, true, observable);
+        delete observer;
+        delete observable;
+    }
 
     void spitfire2d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, bool verbose, SObservable *observable)
     {
@@ -252,6 +260,16 @@ namespace SImg
         {
             observable->notifyProgress(100);
         }
+    }
+
+    void spitfire2d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter)
+    {
+        SObservable* observable = new SObservable();
+        SObserverConsole* observer = new SObserverConsole();
+        observable->addObserver(observer);
+        spitfire2d_deconv_hv(blurry_image, sx, sy, psf, deconv_image, regularization, weighting, niter, true, observable);
+        delete observer;
+        delete observable;
     }
 
     void spitfire2d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, bool verbose, SObservable *observable)

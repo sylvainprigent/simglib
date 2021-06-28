@@ -4,13 +4,11 @@
 /// \version 0.1
 /// \date 2020
 
-#include "spitfire2d.h"
+#include "spitfire3d.h"
 
 #include <smanipulate>
-#include <score/SMath.h>
-#include <score/SException.h>
-#include <sfft/SFFT.h>
-#include <sfft/SFFTConvolutionFilter.h>
+#include <score>
+#include <sfft>
 
 #include "math.h"
 #ifdef SL_USE_OPENMP
@@ -19,6 +17,26 @@
 
 namespace SImg
 {
+
+    void spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter)
+    {
+        SObservable* observable = new SObservable();
+        SObserverConsole* observer = new SObserverConsole();
+        observable->addObserver(observer);
+        spitfire3d_deconv_sv(blurry_image, sx, sy, sz, psf, deconv_image, regularization, weighting, delta, niter, true, observable);
+        delete observer;
+        delete observable;
+    }
+
+    void spitfire3d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter)
+    {
+        SObservable* observable = new SObservable();
+        SObserverConsole* observer = new SObserverConsole();
+        observable->addObserver(observer);
+        spitfire3d_deconv_hv(blurry_image, sx, sy, sz, psf, deconv_image, regularization, weighting, delta, niter, true, observable);
+        delete observer;
+        delete observable;
+    }
 
     void spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, bool verbose, SObservable *observable)
     {
@@ -55,7 +73,7 @@ namespace SImg
 
         float *adjoint_OTFReal = new float[N];
         shift3D(adjoint_PSF_shift, adjoint_OTFReal, sx, sy, sz, int(-float(sx) / 2.0), int(-float(sy) / 2.0), int(-float(sz) / 2.0));
-        delete adjoint_PSF_shift;
+        delete[] adjoint_PSF_shift;
 
         // Splitting parameters
         float dual_step = SMath::max(0.01, SMath::min(0.1, regularization));
@@ -284,7 +302,7 @@ namespace SImg
 
         float *adjoint_OTFReal = new float[N];
         shift3D(adjoint_PSF_shift, adjoint_OTFReal, sx, sy, sz, int(-float(sx) / 2.0), int(-float(sy) / 2.0), int(-float(sz) / 2.0));
-        delete adjoint_PSF_shift;
+        delete[] adjoint_PSF_shift;
 
         // Splitting parameters
         float dual_step = SMath::max(0.001, SMath::min(0.01, regularization));

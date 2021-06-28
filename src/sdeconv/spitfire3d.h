@@ -6,7 +6,7 @@
 
 #pragma once
 
-#include <score/SObservable.h>
+#include "../score/SObservable.h"
 
 namespace SImg
 {
@@ -26,6 +26,8 @@ namespace SImg
     /// \param[in] observable Pointer to the observable object for verbose
     void spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, bool verbose, SObservable *observable);
 
+    void spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter);
+
     /// \brief Sparse hessian variation deconvolution
     /// \param[in] blurry_image Buffer of the input blurry image
     /// \param[in] sx Number of rows in the blurry image
@@ -40,6 +42,8 @@ namespace SImg
     /// \param[in] verbose True to emit progress information
     /// \param[in] observable Pointer to the observable object for verbose
     void spitfire3d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, bool verbose, SObservable *observable);
+
+    void spitfire3d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter);
 
     /// \brief Sparse of hessian variation. This fonction also normalize the input data with it L2 norm
     /// \param[in] blurry_image Buffer of the input blurry image
