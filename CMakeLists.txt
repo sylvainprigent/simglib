@@ -11,8 +11,8 @@
 ## Header
 ## #################################################################
 
-cmake_minimum_required(VERSION 3.8)
-cmake_policy(VERSION 3.8)
+cmake_minimum_required(VERSION 3.15)
+cmake_policy(VERSION 3.15)
 
 project(simglib VERSION 0.0.1)
 
