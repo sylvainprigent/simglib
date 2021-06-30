@@ -39,8 +39,8 @@ INSTALL(TARGETS ${PROJECT_NAME}
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
-install(FILES ${HEADERS_FILES} DESTINATION include/simglib/sdenoise)
-
+install(FILES ${HEADERS_FILES} DESTINATION include/simglib/${PROJECT_NAME})
+install(FILES ../../build/${PROJECT_NAME}Export.h DESTINATION include/simglib/${PROJECT_NAME})
 
 ## #################################################################
 ## Export header file

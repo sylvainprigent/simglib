@@ -38,7 +38,7 @@ INSTALL(TARGETS ${PROJECT_NAME}
   ARCHIVE DESTINATION lib
 )
 install(FILES ${HEADERS_FILES} DESTINATION include/simglib/${PROJECT_NAME})
-install(FILES ../../build/sfftExport.h DESTINATION include/simglib/${PROJECT_NAME})
+install(FILES ../../build/${PROJECT_NAME}Export.h DESTINATION include/simglib/${PROJECT_NAME})
 
 ## #################################################################
 ## Export header file

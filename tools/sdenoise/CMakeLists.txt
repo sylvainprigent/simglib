@@ -25,12 +25,30 @@ SET(FILE ${SRC_FILES} spitfire2d.cpp)
 add_executable(${NAME} ${FILE} )
 target_link_libraries(${NAME} score sdenoise scli simage simageio smanipulate ${SL_LIBRARIES})
 
+INSTALL(TARGETS spitfiredenoise2d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
 SET(NAME spitfiredenoise3d)
 SET(FILE ${SRC_FILES} spitfire3d.cpp)
 add_executable(${NAME} ${FILE} )
 target_link_libraries(${NAME} score sdenoise scli simage simageio smanipulate ${SL_LIBRARIES})
 
+INSTALL(TARGETS spitfiredenoise3d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
 SET(NAME spitfiredenoise4d)
 SET(FILE ${SRC_FILES} spitfire4d.cpp)
 add_executable(${NAME} ${FILE} )
 target_link_libraries(${NAME} score sdenoise scli simage simageio smanipulate ${SL_LIBRARIES})
+
+INSTALL(TARGETS spitfiredenoise4d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
