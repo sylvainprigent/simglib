@@ -17,6 +17,7 @@ project(sdeconv)
 
 SET(SRC_FILES
   sgaussianpsf.cpp
+  sgibsonlannipsf.cpp
   spitfire2d.cpp
   spitfire3d.cpp
   srichardsonlucy.cpp
@@ -26,6 +27,7 @@ SET(SRC_FILES
 
 SET(HEADERS_FILES
   sgaussianpsf.h
+  sgibsonlannipsf.cpp
   spitfire2d.h
   spitfire3d.h
   srichardsonlucy.h

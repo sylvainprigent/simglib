@@ -22,7 +22,7 @@ SET(SRC_FILES
 ## #################################################################
 ## Exe generation
 ## #################################################################
-SET(NAME demo)
+SET(NAME simgclidemo)
 SET(FILE ${SRC_FILES} demo.cpp)
 add_executable( ${NAME} ${FILE} )
 target_link_libraries(${NAME} score scli ${SL_LIBRARIES})

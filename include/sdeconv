@@ -4,3 +4,4 @@
 #include "../src/sdeconv/sutils.h"
 #include "../src/sdeconv/swiener.h"
 #include "../src/sdeconv/sgaussianpsf.h"
+#include "../src/sdeconv/sgibsonlannipsf.h"

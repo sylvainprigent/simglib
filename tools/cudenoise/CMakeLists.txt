@@ -22,7 +22,7 @@ SET(SRC_FILES
 ## #################################################################
 ## Exe generation
 ## #################################################################
-SET(NAME cuspitfire2ddenoise)
+SET(NAME simgcuspitfire2ddenoise)
 SET(FILE ${SRC_FILES} cuspitfire2ddenoise.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} cudenoise smanipulate score simage simageio scli)

@@ -22,7 +22,7 @@ SET(SRC_FILES
 ## #################################################################
 ## Exe generation
 ## #################################################################
-SET(NAME cuspitfire2ddeconv)
+SET(NAME simgcuspitfire2ddeconv)
 SET(FILE ${SRC_FILES} spitfire2d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} cudeconv sdeconv smanipulate score simage simageio scli)

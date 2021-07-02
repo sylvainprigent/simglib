@@ -22,42 +22,82 @@ SET(SRC_FILES
 ## #################################################################
 ## Exe generation
 ## #################################################################
-SET(NAME zeropadding2d)
+SET(NAME simgzeropadding2d)
 SET(FILE ${SRC_FILES} zeropadding2d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simgzeropadding2d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
-SET(NAME zeropadding3d)
+SET(NAME simgzeropadding3d)
 SET(FILE ${SRC_FILES} zeropadding3d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simgzeropadding3d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
-SET(NAME mirrorpadding3d)
+SET(NAME simgmirrorpadding3d)
 SET(FILE ${SRC_FILES} mirrorpadding3d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simgmirrorpadding3d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
-SET(NAME normalizez)
+SET(NAME simgnormalizez)
 SET(FILE ${SRC_FILES} normalizez.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simgnormalizez
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
-SET(NAME hannzeropadding2d)
+SET(NAME simghannzeropadding2d)
 SET(FILE ${SRC_FILES} hannzeropadding2d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simghannzeropadding2d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
-SET(NAME hannzeropadding3d)
+SET(NAME simghannzeropadding3d)
 SET(FILE ${SRC_FILES} hannzeropadding3d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simghannzeropadding3d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
-SET(NAME removepadding3d)
+SET(NAME simgremovepadding3d)
 SET(FILE ${SRC_FILES} removepadding3d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simgremovepadding3d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
 
-SET(NAME resize3d)
+SET(NAME simgresize3d)
 SET(FILE ${SRC_FILES} resize3d.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} spadding scli simage simageio)
+INSTALL(TARGETS simgresize3d
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
