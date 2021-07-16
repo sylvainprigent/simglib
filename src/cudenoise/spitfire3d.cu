@@ -60,7 +60,7 @@ void sv_3d_primal(unsigned int sx, unsigned int sy, unsigned int sz, float prima
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int y = blockIdx.z * blockDim.z + threadIdx.z;
+    int z = blockIdx.z * blockDim.z + threadIdx.z;
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
@@ -152,7 +152,7 @@ void dual_3d_auxiliary(unsigned int N , float* auxiliary_image, float* denoised_
 }
 
 __global__
-void sv_3d_dual(unsigned int sx, unsigned int sy, float dual_weight, float dual_weight_comp, float*auxiliary_image, float* dual_images0, float* dual_images1,
+void sv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float*auxiliary_image, float* dual_images0, float* dual_images1,
                 float* dual_images2, float* dual_images3)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
@@ -175,7 +175,7 @@ void sv_3d_dual(unsigned int sx, unsigned int sy, float dual_weight, float dual_
 }
 
 __global__
-void hv_3d_dual(unsigned int sx, unsigned int sy, float dual_weight, float dual_weight_comp, float sqrt2, float*auxiliary_image, float* dual_images0, float* dual_images1,
+void hv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, float*auxiliary_image, float* dual_images0, float* dual_images1,
                 float* dual_images2, float* dual_images3, float* dual_images4, float* dual_images5, float* dual_images6)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;

@@ -10,8 +10,8 @@
 
 namespace SImg{
 
-void cuda_spitfire2d_denoise_sv(float* noisy_image, unsigned int sx, unsigned int sy, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, bool verbose, SObservable* observable);
-void cuda_spitfire2d_denoise_hv(float* noisy_image, unsigned int sx, unsigned int sy, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, bool verbose, SObservable* observable);
-void cuda_spitfire3d_denoise(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable);
+void cuda_spitfire3d_denoise_sv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, bool verbose, SObservable* observable);
+void cuda_spitfire3d_denoise_hv(float* noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float* denoised_image, const float& regularization, const float& weighting, const unsigned int& niter, bool verbose, SObservable* observable);
+void cuda_spitfire3d_denoise(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable);
 
 }
