@@ -88,10 +88,33 @@ int main(int argc, char *argv[])
         }
         SImg::toc();
 
+        // normalize back intensities
+        float omin = denoised_image[0];
+        float omax = denoised_image[0];
+        for (unsigned int i = 1; i < sx*sy*sz*st; ++i)
+        {
+            float val = denoised_image[i];
+            if (val > omax)
+            {
+                omax = val;
+            }
+            if (val < omin)
+            {
+                omin = val;
+            }
+        }
+
+#pragma omp parallel for
+        for (unsigned int i = 0; i < sx*sy*sz*st; ++i)
+        {
+            denoised_image[i] = (denoised_image[i] - omin)/(omax-omin);
+            denoised_image[i] = denoised_image[i] * (imax - imin) + imin;
+        }
+
         SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz, st), outputImageFile);
 
         delete[] noisy_image_norm;
-        delete[] denoised_image;
+        delete denoised_image;
         delete observable;
     }
     catch (SException &e)
