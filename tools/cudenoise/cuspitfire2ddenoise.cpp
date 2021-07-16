@@ -56,44 +56,18 @@ int main(int argc, char *argv[])
         {
             throw SException("cuda spitfire2d can process only 2D gray scale images");
         }
-        float imax = inputImage->getMax();
-        float imin = inputImage->getMin();
 
+        // run deconvolution
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
         //SImg::tic();
-
-        // min max normalize intensities
-        float* noisy_image_norm = new float[sx*sy];
-        SImg::normMinMax(noisy_image, sx, sy, 1, 1, 1, noisy_image_norm);
-        delete inputImage;
-
-        // run denoising
-        float* denoised_image = new float[sx*sy];
-        if (method == "SV"){
-            SImg::cuda_spitfire2d_denoise_sv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
-        }
-        else if (method == "HV")
-        {
-            SImg::cuda_spitfire2d_denoise_hv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
-        }
-        else{
-            throw SException("cuda spitfire2d: method must be SV or HV");
-        }
-
-        // normalize back intensities
-        #pragma omp parallel for
-        for (unsigned int i = 0 ; i < sx*sy ; ++i)
-        {
-            denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
-        }
+        float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy));
+        SImg::cuda_spitfire2d_denoise(inputImage->getBuffer(), sx, sy, denoised_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
         //SImg::toc();
-        delete STimerAccess::instance();
 
         SImageFloat* denImage = new SImageFloat(denoised_image, sx, sy);
         SImageReader::write(denImage, outputImageFile);
 
-        delete[] noisy_image_norm;
         delete denImage;
         delete observable;
     }

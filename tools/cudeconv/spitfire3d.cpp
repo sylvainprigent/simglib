@@ -2,7 +2,8 @@
 #include <scli>
 #include <simageio>
 #include <smanipulate>
-#include <cudenoise>
+#include <sdeconv>
+#include <cudeconv>
 #include "math.h"
 
 int main(int argc, char *argv[])
@@ -14,6 +15,7 @@ int main(int argc, char *argv[])
         SCliParser cmdParser(argc, argv);
         cmdParser.addInputData("-i", "Input image file");
         cmdParser.addOutputData("-o", "Output image file");
+        cmdParser.addInputData("-psf", "PSF image file");
 
         cmdParser.addParameterSelect("-method", "Deconvolution method 'SV' or 'HV", "HV");
         cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 11);
@@ -21,12 +23,13 @@ int main(int argc, char *argv[])
         cmdParser.addParameterInt("-niter", "Nb iterations", 200);
 
         cmdParser.addParameterBoolean("-verbose", "Print iterations to console", true);
-        cmdParser.setMan("Denoise a 3D image with the SPITFIR(e) algotithm");
+        cmdParser.setMan("Deconv a 3D image with the SPITFIR(e) cuda algotithm");
         cmdParser.parse(2);
 
         std::string inputImageFile = cmdParser.getDataURI("-i");
         std::string outputImageFile = cmdParser.getDataURI("-o");
 
+        std::string psfImageFile = cmdParser.getDataURI("-psf");
         const std::string method = cmdParser.getParameterString("-method");
         const float regularization = cmdParser.getParameterFloat("-regularization");
         const float weighting = cmdParser.getParameterFloat("-weighting");
@@ -34,42 +37,58 @@ int main(int argc, char *argv[])
         const bool verbose = cmdParser.getParameterBool("-verbose");
 
         if (inputImageFile == ""){
-            observer->message("cuda spitfire3d: Input image path is empty");
+            observer->message("spitfire3d: Input image path is empty");
             return 1;
         }
 
         if (verbose){
-            observer->message("cuda spitfire3d: input image: " + inputImageFile);
-            observer->message("cuda spitfire3d: output image: " + outputImageFile);
-            observer->message("cuda spitfire3d: method: " + method);
-            observer->message("cuda spitfire3d: regularization parameter: " + std::to_string(regularization));
-            observer->message("cuda spitfire3d: weighting parameter: " + std::to_string(weighting));
-            observer->message("cuda spitfire3d: nb iterations: " + std::to_string(niter));
+            observer->message("spitfire3d: input image: " + inputImageFile);
+            observer->message("spitfire3d: output image: " + outputImageFile);
+            observer->message("spitfire3d: psf image: " + psfImageFile);
+            observer->message("spitfire3d: method: " + method);
+            observer->message("spitfire3d: regularization parameter: " + std::to_string(regularization));
+            observer->message("spitfire3d: weighting parameter: " + std::to_string(weighting));
+            observer->message("spitfire3d: nb iterations: " + std::to_string(niter));
         }
 
         // Run process
         SImageFloat* inputImage = dynamic_cast<SImageFloat*>(SImageReader::read(inputImageFile, 32));
-        float* noisy_image = inputImage->getBuffer();
+        float* blurry_image = inputImage->getBuffer();
         unsigned int sx = inputImage->getSizeX();
         unsigned int sy = inputImage->getSizeY();
         unsigned int sz = inputImage->getSizeZ();
         if (inputImage->getSizeT() > 1 || inputImage->getSizeC() > 1)
         {
-            throw SException("cuda spitfire3d can process only 3D gray scale images");
+            throw SException("spitfire3d can process only 3D gray scale images");
         }
-        
+
+                // create the PSF
+        SImageFloat* psfImage = dynamic_cast<SImageFloat*>(SImageReader::read(psfImageFile, 32));
+        if (psfImage->getSizeX() != sx || psfImage->getSizeY() != sy || psfImage->getSizeZ() != sz)
+        {
+            throw SException("spitfire3d the PSF image size must be the same as the input image size");
+        } 
+        float* psf = psfImage->getBuffer();
+        float psf_sum = 0.0;
+        for (unsigned int i = 0 ; i < sx*sy*sz ; ++i){
+            psf_sum += psf[i]; 
+        }
+        for (unsigned int i = 0 ; i < sx*sy*sz ; ++i){
+            psf[i] /= psf_sum;
+        }
+
         // run deconvolution
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
-        //SImg::tic();
+        SImg::tic();
         float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy*sz));
-        SImg::cuda_spitfire3d_denoise(inputImage->getBuffer(), sx, sy, sz, denoised_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
-        //SImg::toc();
+        SImg::cuda_spitfire3d_deconv(blurry_image, sx, sy, sz, psf, deconv_image, pow(2, -regularization), weighting, delta, niter, method, verbose, observable);
+        SImg::toc();
 
-        SImageFloat* denImage = new SImageFloat(denoised_image, sx, sy, sz);
-        SImageReader::write(denImage, outputImageFile);
+        SImageReader::write(new SImageFloat(deconv_image, sx, sy, sz), outputImageFile);
 
-        delete denImage;
+        delete[] blurry_image;
+        delete[] deconv_image;
         delete observable;
     }
     catch (SException &e)

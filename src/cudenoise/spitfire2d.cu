@@ -403,4 +403,65 @@ namespace SImg{
         }
     }
 
+    void cuda_spitfire2d_denoise(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable)
+    {
+        // normalize the input image
+        unsigned int bs = sx * sy;
+        float imin = blurry_image[0];
+        float imax = blurry_image[0];
+        for (unsigned int i = 1; i < bs; ++i)
+        {
+            float val = blurry_image[i];
+            if (val > imax)
+            {
+                imax = val;
+            }
+            if (val < imin)
+            {
+                imin = val;
+            }
+        }
+
+        float *blurry_image_norm = new float[sx * sy];
+        normL2(blurry_image, sx, sy, 1, 1, 1, blurry_image_norm);
+
+        // run denoising
+        if (method == "SV")
+        {
+            cuda_spitfire2d_denoise_sv(blurry_image_norm, sx, sy, psf, deconv_image, regularization, weighting, niter, verbose, observable);
+        }
+        else if (method == "HV")
+        {
+            cuda_spitfire2d_denoise_hv(blurry_image_norm, sx, sy, psf, deconv_image, regularization, weighting, niter, verbose, observable);
+        }
+        else
+        {
+            throw SException("spitfire2d: method must be SV or HV");
+        }
+
+// normalize back intensities
+        float omin = deconv_image[0];
+        float omax = deconv_image[0];
+        for (unsigned int i = 1; i < bs; ++i)
+        {
+            float val = deconv_image[i];
+            if (val > omax)
+            {
+                omax = val;
+            }
+            if (val < omin)
+            {
+                omin = val;
+            }
+        }
+
+#pragma omp parallel for
+        for (unsigned int i = 0; i < sx * sy; ++i)
+        {
+           deconv_image[i] = (deconv_image[i] - omin)/(omax-omin);
+           deconv_image[i] = deconv_image[i] * (imax - imin) + imin;
+        }
+
+        delete[] blurry_image_norm;
+    }
 }
