@@ -28,4 +28,4 @@ add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} cudeconv sdeconv smanipulate score simage simageio scli)
 target_compile_features(cuspitfire2ddeconv PUBLIC cxx_std_11)
 set_target_properties( cuspitfire2ddeconv
-                       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)
+                       PROPERTIES CUDA_SEPARABLE_COMPILATION ON)                    

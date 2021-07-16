@@ -17,10 +17,12 @@ project(cudenoise LANGUAGES CUDA CXX)
 
 SET(SRC_FILES
   spitfire2d.cu
+  spitfire3d.cu
 )
 
 SET(HEADERS_FILES
   spitfire2d.h
+  spitfire3d.h
 )
   
 ## #################################################################

@@ -1,1 +1,2 @@
 #include "../src/cudenoise/spitfire2d.h"
+#include "../src/cudenoise/spitfire3d.h"
