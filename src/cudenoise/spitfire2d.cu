@@ -6,8 +6,9 @@
 
 
 #include "spitfire2d.h"
+#include <smanipulate>
 #include <score/SMath.h>
-#include <scli>
+#include <score/SException.h>
 
 __global__
 void init_2d_buffers_hv(unsigned int N, float* cu_denoised_image, float* cu_noisy_image, float* dual_images0, 
@@ -39,7 +40,7 @@ void init_2d_buffers_sv(unsigned int N, float* cu_denoised_image, float* cu_nois
 }
 
 __global__
-void copy_buffer(float* in_buffer, unsigned int n, float *out_buffer)
+void copy_buffer_2d(float* in_buffer, unsigned int n, float *out_buffer)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < n)
@@ -265,7 +266,7 @@ namespace SImg{
         for (int iter = 0; iter < niter; iter++) {
     
             // Primal optimization
-            copy_buffer<<<numBlocks1d, blockSize1d>>>(cu_denoised_image, N, auxiliary_image);
+            copy_buffer_2d<<<numBlocks1d, blockSize1d>>>(cu_denoised_image, N, auxiliary_image);
 
             sv_2d_primal<<<blockSize2d,gridSize2d>>>(sx, sy, primal_step, primal_weight, primal_weight_comp, 
                                                      cu_denoised_image, cu_noisy_image, dual_images0, dual_images1, 
@@ -358,7 +359,7 @@ namespace SImg{
         for (int iter = 0; iter < niter; ++iter) {
 
             // Primal optimization
-            copy_buffer<<<numBlocks1d, blockSize1d>>>(cu_denoised_image, N, auxiliary_image);
+            copy_buffer_2d<<<numBlocks1d, blockSize1d>>>(cu_denoised_image, N, auxiliary_image);
     
             hv_2d_primal<<<gridSize2d, blockSize2d>>>(sx, sy, primal_step, primal_weight, primal_weight_comp, sqrt2, 
                                                      cu_denoised_image, cu_noisy_image, dual_images0, dual_images1, 
@@ -403,7 +404,7 @@ namespace SImg{
         }
     }
 
-    void cuda_spitfire2d_denoise(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable)
+    void cuda_spitfire2d_denoise(float *blurry_image, unsigned int sx, unsigned int sy, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable)
     {
         // normalize the input image
         unsigned int bs = sx * sy;
@@ -428,11 +429,11 @@ namespace SImg{
         // run denoising
         if (method == "SV")
         {
-            cuda_spitfire2d_denoise_sv(blurry_image_norm, sx, sy, psf, deconv_image, regularization, weighting, niter, verbose, observable);
+            cuda_spitfire2d_denoise_sv(blurry_image_norm, sx, sy, deconv_image, regularization, weighting, niter, verbose, observable);
         }
         else if (method == "HV")
         {
-            cuda_spitfire2d_denoise_hv(blurry_image_norm, sx, sy, psf, deconv_image, regularization, weighting, niter, verbose, observable);
+            cuda_spitfire2d_denoise_hv(blurry_image_norm, sx, sy, deconv_image, regularization, weighting, niter, verbose, observable);
         }
         else
         {

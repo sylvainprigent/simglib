@@ -339,7 +339,7 @@ namespace SImg
         dim3 blockSize2d(16, 16);
         dim3 gridSize2d = dim3((sx + 16 - 1) / 16, (sy + 16 - 1) / 16);
 
-        d_sv_init_2d_buffers<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, cu_blurry_image, dual_image0, dual_image1, dual_image2, dual_image3);
+        d_sv_init_2d_buffers<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, cu_blurry_image, dual_image0, dual_image1, dual_image2);
         //cudaDeviceSynchronize();
         
         cufftComplex *blurry_image_FT;
@@ -441,7 +441,6 @@ namespace SImg
         cudaFree(dual_image0);
         cudaFree(dual_image1);
         cudaFree(dual_image2);
-        cudaFree(dual_image3);
         cudaFree(auxiliary_image);
         cudaFree(residue_image);
 

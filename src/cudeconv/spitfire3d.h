@@ -22,7 +22,7 @@ namespace SImg
     /// \param[in] niter Number of iteration
     /// \param[in] verbose True to emit progress information
     /// \param[in] observable Pointer to the observable object for verbose
-    void cuda_spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, bool verbose, SObservable *observable);
+    void cuda_spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, bool verbose, SObservable *observable);
 
     /// \brief Sparse hessian variation deconvolution
     /// \param[in] blurry_image Buffer of the input blurry image
@@ -36,8 +36,8 @@ namespace SImg
     /// \param[in] niter Number of iteration
     /// \param[in] verbose True to emit progress information
     /// \param[in] observable Pointer to the observable object for verbose
-    void cuda_spitfire3d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, bool verbose, SObservable *observable);
+    void cuda_spitfire3d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, bool verbose, SObservable *observable);
 
-    void cuda_spitfire3d_deconv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable);
+    void cuda_spitfire3d_deconv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable);
     
 }

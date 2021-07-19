@@ -31,7 +31,7 @@ SET(HEADERS_FILES
 
 add_library(${PROJECT_NAME} ${SRC_FILES} ${HEADERS_FILES})
 
-target_link_libraries(${PROJECT_NAME} cufft ${SL_LIBRARIES})
+target_link_libraries(${PROJECT_NAME} ${SL_LIBRARIES})
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_11)
 set_target_properties( ${PROJECT_NAME}
                        PROPERTIES CUDA_SEPARABLE_COMPILATION ON)

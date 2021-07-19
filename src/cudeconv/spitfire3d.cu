@@ -59,7 +59,7 @@ void d_sv_init_3d_buffers(unsigned int N, float* cu_deconv_image, float* cu_blur
 }
 
 __global__
-void d_init_deconv_residu(unsigned int Nfft, cufftComplex* deconv_image_FT, cufftComplex* residue_image_FT, cufftComplex* blurry_image_FT)
+void d_init_deconv_residu_3d(unsigned int Nfft, cufftComplex* deconv_image_FT, cufftComplex* residue_image_FT, cufftComplex* blurry_image_FT)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < Nfft)
@@ -72,7 +72,7 @@ void d_init_deconv_residu(unsigned int Nfft, cufftComplex* deconv_image_FT, cuff
 }
 
 __global__
-void d_copy(unsigned int N, float* source, float* destination)
+void d_copy_3d(unsigned int N, float* source, float* destination)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < N)
@@ -82,7 +82,7 @@ void d_copy(unsigned int N, float* source, float* destination)
 }
 
 __global__
-void d_copy_complex(unsigned int N, cufftComplex* source, cufftComplex* destination)
+void d_copy_complex_3d(unsigned int N, cufftComplex* source, cufftComplex* destination)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < N)
@@ -93,7 +93,7 @@ void d_copy_complex(unsigned int N, cufftComplex* source, cufftComplex* destinat
 }
 
 __global__
-void d_dataterm(unsigned int Nfft, cufftComplex* OTF, cufftComplex* deconv_image_FT, cufftComplex* blurry_image_FT, cufftComplex* residue_image_FT, cufftComplex* adjoint_OTF)
+void d_dataterm_3d(unsigned int Nfft, cufftComplex* OTF, cufftComplex* deconv_image_FT, cufftComplex* blurry_image_FT, cufftComplex* residue_image_FT, cufftComplex* adjoint_OTF)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < Nfft)
@@ -107,9 +107,9 @@ void d_dataterm(unsigned int Nfft, cufftComplex* OTF, cufftComplex* deconv_image
 }
 
 __global__
-void d_sv_primal_3d(unsigned int N, unsigned int sx, unsigned int sy, float primal_step, float primal_weight, 
-                    float primal_weight_comp, float sqrt2, float* deconv_image, float* residue_image, 
-                    float* dual_image0, float* dual_image1, float* dual_image2, float* dual_image3)
+void d_sv_primal_3d(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float primal_step, float primal_weight, 
+                    float primal_weight_comp, float sqrt2, float* deconv_image, float delta, float* residue_image, 
+                    float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -147,10 +147,10 @@ void d_sv_primal_3d(unsigned int N, unsigned int sx, unsigned int sy, float prim
 }
 
 __global__
-void d_hv_primal_3d(unsigned int N, unsigned int sx, unsigned int sy, float primal_step, float primal_weight, 
-                    float primal_weight_comp, float sqrt2, float* deconv_image, float* residue_image, 
-                    float* dual_image0, float* dual_image1, float* dual_image2, float* dual_image3,
-                    float* dual_image4, float* dual_image5, float* dual_image6)
+void d_hv_primal_3d(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float primal_step, float primal_weight, 
+                    float primal_weight_comp, float sqrt2, float* deconv_image, float delta, float* residue_image, 
+                    float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3,
+                    float* dual_images4, float* dual_images5, float* dual_images6)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -205,8 +205,9 @@ void d_dual_auxiliary(unsigned int N, float* auxiliary_image, float* deconv_imag
 }
 
 __global__
-void d_sv_3d_dual(unsigned int sx, unsigned int sy, float dual_weight, float dual_weight_comp, float sqrt2, 
-                  float* auxiliary_image, float* dual_image0, float* dual_image1, float* dual_image2, float* dual_image3)
+void d_sv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, 
+                  float delta, 
+                  float* auxiliary_image, float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -227,9 +228,10 @@ void d_sv_3d_dual(unsigned int sx, unsigned int sy, float dual_weight, float dua
 }
 
 __global__
-void d_hv_3d_dual(unsigned int sx, unsigned int sy, float dual_weight, float dual_weight_comp, float sqrt2, 
-                  float* auxiliary_image, float* dual_image0, float* dual_image1, float* dual_image2, float* dual_image3,
-                  float* dual_image4, float* dual_image5, float* dual_image6)
+void d_hv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, 
+                  float delta,  
+                  float* auxiliary_image, float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3,
+                  float* dual_images4, float* dual_images5, float* dual_images6)
 {
     int x = blockIdx.x * blockDim.x + threadIdx.x;
     int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -257,7 +259,7 @@ void d_hv_3d_dual(unsigned int sx, unsigned int sy, float dual_weight, float dua
 
 __global__
 void d_hv_dual_3d_normalize(unsigned int N, float inv_reg, float* dual_image0, float* dual_image1, 
-                            float* dual_image2, float* dual_image3, float* dual_image4, float* dual_image5
+                            float* dual_image2, float* dual_image3, float* dual_image4, float* dual_image5,
                             float* dual_image6)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -281,8 +283,7 @@ void d_hv_dual_3d_normalize(unsigned int N, float inv_reg, float* dual_image0, f
 
 __global__
 void d_sv_dual_3d_normalize(unsigned int N, float inv_reg, float* dual_image0, float* dual_image1, 
-                            float* dual_image2, float* dual_image3, float* dual_image4, float* dual_image5
-                            float* dual_image6)
+                            float* dual_image2, float* dual_image3)
 {
     int i = blockIdx.x * blockDim.x + threadIdx.x;
     if (i < N)
@@ -303,7 +304,9 @@ void d_sv_dual_3d_normalize(unsigned int N, float inv_reg, float* dual_image0, f
 namespace SImg
 {
 
-    void cuda_spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, bool verbose, SObservable *observable)
+    void cuda_spitfire3d_deconv_sv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, 
+                                   const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, 
+                                   bool verbose, SObservable *observable)
     {
         int N = sx * sy * sz;
         int Nfft = sx *sy * (sz / 2 + 1);
@@ -409,7 +412,7 @@ namespace SImg
         // Deconvolution process
         float inv_reg = 1.0 / regularization;
 
-        d_init_deconv_residu<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT, blurry_image_FT);
+        d_init_deconv_residu_3d<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT, blurry_image_FT);
 
         cufftHandle Planifft;
         cufftPlan3d(&Planifft, sx, sy, sz, CUFFT_C2R);
@@ -417,23 +420,23 @@ namespace SImg
         for (unsigned int iter = 0; iter < niter; iter++)
         {
             // Primal optimization
-            d_copy<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, auxiliary_image);
+            d_copy_3d<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, auxiliary_image);
             
             cudaDeviceSynchronize();
             cufftExecR2C(Planfft, (cufftReal*)cu_deconv_image, (cufftComplex*)deconv_image_FT);
             cudaDeviceSynchronize();
 
-            d_copy_complex<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT);
+            d_copy_complex_3d<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT);
 
             // Data term
-            d_dataterm<<<numBlocks1dfft,blockSize1d>>>(Nfft, OTF, deconv_image_FT, blurry_image_FT, residue_image_FT, adjoint_OTF);
+            d_dataterm_3d<<<numBlocks1dfft,blockSize1d>>>(Nfft, OTF, deconv_image_FT, blurry_image_FT, residue_image_FT, adjoint_OTF);
             cudaDeviceSynchronize();
             cufftExecC2R(Planifft, (cufftComplex*)residue_image_FT, (cufftReal*)residue_image);
             cudaDeviceSynchronize(); 
 
             // primal
-            d_sv_primal_3d<<<gridSize3d, blockSize3d>>>(N, sx, sy, primal_step, primal_weight, primal_weight_comp, sqrt2, 
-                                                        cu_deconv_image, residue_image, dual_image0, dual_image1, 
+            d_sv_primal_3d<<<gridSize3d, blockSize3d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
+                                                        cu_deconv_image, delta, residue_image, dual_image0, dual_image1, 
                                                         dual_image2, dual_image3);
             // Stopping criterion
             if (verbose)
@@ -451,8 +454,8 @@ namespace SImg
             d_dual_auxiliary<<<numBlocks1d, blockSize1d>>>(N, auxiliary_image, cu_deconv_image);
 
             // dual    
-            d_sv_3d_dual<<<gridSize3d, blockSize3d>>>(sx, sy, dual_weight, dual_weight_comp, sqrt2, 
-                                                      auxiliary_image, dual_image0, 
+            d_sv_3d_dual<<<gridSize3d, blockSize3d>>>(sx, sy, sz, dual_weight, dual_weight_comp, sqrt2, 
+                                                      delta, auxiliary_image, dual_image0, 
                                                       dual_image1, dual_image2, dual_image3);                                         
 
             // normalize
@@ -488,7 +491,9 @@ namespace SImg
         }
     }
 
-    void cuda_spitfire3d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, bool verbose, SObservable *observable)
+    void cuda_spitfire3d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, 
+                                   const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, 
+                                   bool verbose, SObservable *observable)
     {
         int N = sx * sy * sz;
         int Nfft = sx *sy * (sz / 2 + 1);
@@ -605,7 +610,7 @@ namespace SImg
         float inv_reg = 1.0 / regularization;
 
 
-        d_init_deconv_residu<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT, blurry_image_FT);
+        d_init_deconv_residu_3d<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT, blurry_image_FT);
 
         cufftHandle Planifft;
         cufftPlan3d(&Planifft, sx, sy, sz, CUFFT_C2R);
@@ -613,24 +618,24 @@ namespace SImg
         for (unsigned int iter = 0; iter < niter; iter++)
         {
             // Primal optimization
-            d_copy<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, auxiliary_image);
+            d_copy_3d<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, auxiliary_image);
             
             cudaDeviceSynchronize();
             cufftExecR2C(Planfft, (cufftReal*)cu_deconv_image, (cufftComplex*)deconv_image_FT);
             cudaDeviceSynchronize();
 
-            d_copy_complex<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT);
+            d_copy_complex_3d<<<numBlocks1dfft,blockSize1d>>>(Nfft, deconv_image_FT, residue_image_FT);
             //cudaDeviceSynchronize();
 
             // Data term
-            d_dataterm<<<numBlocks1dfft,blockSize1d>>>(Nfft, OTF, deconv_image_FT, blurry_image_FT, residue_image_FT, adjoint_OTF);
+            d_dataterm_3d<<<numBlocks1dfft,blockSize1d>>>(Nfft, OTF, deconv_image_FT, blurry_image_FT, residue_image_FT, adjoint_OTF);
             cudaDeviceSynchronize();
             cufftExecC2R(Planifft, (cufftComplex*)residue_image_FT, (cufftReal*)residue_image);
             cudaDeviceSynchronize(); 
 
             // primal
-            d_hv_primal_3d<<<gridSize3d, blockSize3d>>>(N, sx, sy, primal_step, primal_weight, primal_weight_comp, sqrt2, 
-                                                        cu_deconv_image, residue_image, dual_image0, dual_image1, 
+            d_hv_primal_3d<<<gridSize3d, blockSize3d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
+                                                        cu_deconv_image, delta, residue_image, dual_image0, dual_image1, 
                                                         dual_image2, dual_image3, dual_image4, dual_image5, dual_image6);
             //cudaDeviceSynchronize();
             // Stopping criterion
@@ -650,8 +655,8 @@ namespace SImg
             //cudaDeviceSynchronize();
 
             // dual    
-            d_hv_3d_dual<<<gridSize3d, blockSize3d>>>(sx, sy, dual_weight, dual_weight_comp, sqrt2, 
-                                                      auxiliary_image, dual_image0, 
+            d_hv_3d_dual<<<gridSize3d, blockSize3d>>>(sx, sy, sz, dual_weight, dual_weight_comp, sqrt2, 
+                                                      delta, auxiliary_image, dual_image0, 
                                                       dual_image1, dual_image2, dual_image3,
                                                       dual_image4, dual_image5, dual_image6);
             //cudaDeviceSynchronize();                                         
@@ -695,7 +700,7 @@ namespace SImg
         }
     }
 
-    void cuda_spitfire3d_deconv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable)
+    void cuda_spitfire3d_deconv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable)
     {
         // normalize the input image
         unsigned int bs = sx * sy *sz;
@@ -720,11 +725,11 @@ namespace SImg
         // run denoising
         if (method == "SV")
         {
-            cuda_spitfire3d_deconv_sv(blurry_image_norm, sx, sy, sz, psf, deconv_image, regularization, weighting, niter, verbose, observable);
+            cuda_spitfire3d_deconv_sv(blurry_image_norm, sx, sy, sz, psf, deconv_image, regularization, weighting, delta, niter, verbose, observable);
         }
         else if (method == "HV")
         {
-            cuda_spitfire3d_deconv_hv(blurry_image_norm, sx, sy, sz, psf, deconv_image, regularization, weighting, niter, verbose, observable);
+            cuda_spitfire3d_deconv_hv(blurry_image_norm, sx, sy, sz, psf, deconv_image, regularization, weighting, delta, niter, verbose, observable);
         }
         else
         {
