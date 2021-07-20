@@ -1,4 +1,4 @@
-/// \file spitfire2d.cpp
+/// \file spitfire2d.cu
 /// \brief spitfire2d definitions
 /// \author Sylvain Prigent
 /// \version 0.1
@@ -248,10 +248,6 @@ namespace SImg{
         cudaMalloc ( &cu_noisy_image, N*sizeof(float));
         cudaMemcpy(cu_noisy_image, noisy_image, N*sizeof(float), cudaMemcpyHostToDevice); 
 
-        //STimer timer;
-        //timer.setObserver(new SObserverConsole());
-        //timer.tic();
-
         // cida threads blocs
         int blockSize1d = 256;
         int numBlocks1d = (N + blockSize1d - 1) / blockSize1d;
@@ -273,6 +269,7 @@ namespace SImg{
                                                      dual_images2);
         
             // Stopping criterion
+            cudaDeviceSynchronize();
             if (verbose){
                 int iter_n = niter / 10;
                 if (iter_n < 1) iter_n = 1;
@@ -340,10 +337,6 @@ namespace SImg{
         cudaMalloc ( &cu_denoised_image, N*sizeof(float));
         cudaMalloc ( &cu_noisy_image, N*sizeof(float));
         cudaMemcpy(cu_noisy_image, noisy_image, N*sizeof(float), cudaMemcpyHostToDevice); 
-    
-        //STimer timer;
-        //timer.setObserver(new SObserverConsole());
-        //timer.tic();
 
         // cuda threads blocs
         int blockSize1d = 256;
@@ -366,6 +359,7 @@ namespace SImg{
                                                      dual_images2, dual_images3);
     
             // Stopping criterion
+            cudaDeviceSynchronize();
             if (verbose){
                 int iter_n = niter / 10;
                 if (iter_n < 1) iter_n = 1;
@@ -424,7 +418,7 @@ namespace SImg{
         }
 
         float *blurry_image_norm = new float[sx * sy];
-        normL2(blurry_image, sx, sy, 1, 1, 1, blurry_image_norm);
+        normMinMax(blurry_image, sx, sy, 1, 1, 1, blurry_image_norm);
 
         // run denoising
         if (method == "SV")

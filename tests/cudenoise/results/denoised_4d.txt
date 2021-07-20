@@ -1,0 +1,10 @@
+denoised_4d_t01.tif
+denoised_4d_t02.tif
+denoised_4d_t03.tif
+denoised_4d_t04.tif
+denoised_4d_t05.tif
+denoised_4d_t06.tif
+denoised_4d_t07.tif
+denoised_4d_t08.tif
+denoised_4d_t09.tif
+denoised_4d_t10.tif

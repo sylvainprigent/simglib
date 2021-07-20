@@ -1,11 +1,11 @@
-/// \file spitfire2d.cpp
-/// \brief spitfire2d definitions
+/// \file spitfire3d.cu
+/// \brief spitfire3d definitions
 /// \author Sylvain Prigent
 /// \version 0.1
 /// \date 2020
 
 
-#include "spitfire2d.h"
+#include "spitfire3d.h"
 #include <score/SMath.h>
 #include <score/SException.h>
 #include <smanipulate>
@@ -55,19 +55,26 @@ void copy_buffer_3d(float* in_buffer, unsigned int n, float *out_buffer)
 }
 
 __global__
-void sv_3d_primal(unsigned int sx, unsigned int sy, unsigned int sz, float primal_step, float primal_weight, 
+void sv_3d_primal(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float primal_step, float primal_weight, 
                   float primal_weight_comp, float *denoised_image, float *noisy_image, float delta,
                   float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
+    {
+        return;
+    }
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
     }
 
-    unsigned int p = z + sz * (y + sy * x);
     unsigned int pxm = p - sz * sy;
     unsigned int pym = p - sz;
     unsigned int pzm = p - 1;
@@ -91,24 +98,32 @@ void sv_3d_primal(unsigned int sx, unsigned int sy, unsigned int sz, float prima
     else
     {
         denoised_image[p] = tmp;
-    }   
+    }
 
 }
 
 __global__
-void hv_3d_primal(unsigned int sx, unsigned int sy, unsigned int sz, float primal_step, float primal_weight, float primal_weight_comp, float sqrt2, 
+void hv_3d_primal(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float primal_step, float primal_weight, float primal_weight_comp, float sqrt2, 
                   float *denoised_image, float *noisy_image, float delta,
                   float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3,
                   float* dual_images4, float* dual_images5, float* dual_images6)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
-    if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1|| z < 1 || z >= sz-1)
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
     {
         return;
     }
-    unsigned int p = z + sz * (y + sy * x);
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
+    if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
+    {
+        return;
+    }
+
     unsigned int pxm = p - sz * sy;
     unsigned int pym = p - sz;
     unsigned int pzm = p - 1;
@@ -154,19 +169,26 @@ void dual_3d_auxiliary(unsigned int N , float* auxiliary_image, float* denoised_
 }
 
 __global__
-void sv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float delta,
+void sv_3d_dual(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float delta,
                 float*auxiliary_image, float* dual_images0, float* dual_images1,
                 float* dual_images2, float* dual_images3)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
+    {
+        return;
+    }
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
     }
 
-    unsigned int p = z + sz * (y + sy * x);
     unsigned int pxp = p + sz * sy;
     unsigned int pyp = p + sz;
     unsigned int pzp = p + 1;
@@ -178,18 +200,26 @@ void sv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_we
 }
 
 __global__
-void hv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, float delta,
+void hv_3d_dual(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, float delta,
                 float*auxiliary_image, float* dual_images0, float* dual_images1,
                 float* dual_images2, float* dual_images3, float* dual_images4, float* dual_images5, float* dual_images6)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
+    {
+        return;
+    }
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
     }
-    unsigned int p = z + sz * (y + sy * x);  
+
     unsigned int pxm = p - sz*sy;
     unsigned int pym = p - sz;  
     unsigned int pzm = p - 1;
@@ -214,7 +244,7 @@ void hv_dual_3d_normalize(unsigned int N, float inv_reg, float* dual_images0, fl
     if (i < N)
     {
         float tmp = inv_reg * sqrt( dual_images0[i]*dual_images0[i] + dual_images1[i]*dual_images1[i] + dual_images2[i]*dual_images2[i] + dual_images3[i]*dual_images3[i]
-                                   + dual_images4[i] * dual_images4[i] + dual_images4[i] * dual_images4[i] + dual_images6[i] * dual_images6[i]);
+                                   + dual_images4[i] * dual_images4[i] + dual_images5[i] * dual_images5[i] + dual_images6[i] * dual_images6[i]);
         if (tmp > 1.0)
         {
             float inv_tmp = 1.0/tmp;
@@ -255,14 +285,14 @@ namespace SImg{
     
         // Splitting parameters
         float dual_step = SMath::max(0.01, SMath::min(0.1, regularization));
-        float primal_step = 0.99
-                / (0.5
-                   + (8 * pow(weighting, 2.)
-                      + pow(1 - weighting, 2.)) * dual_step);
+
+        float primal_step = 0.99 / (0.5 + (12 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step);
+
         float primal_weight = primal_step * weighting;
         float primal_weight_comp = primal_step * (1 - weighting);
         float dual_weight = dual_step * weighting;
         float dual_weight_comp = dual_step * (1 - weighting);
+        float inv_reg = 1.0 / regularization;
     
         // Initializations
         float* dual_images0;
@@ -280,32 +310,27 @@ namespace SImg{
         cudaMalloc ( &auxiliary_image, N*sizeof(float));
         cudaMalloc ( &cu_denoised_image, N*sizeof(float));
         cudaMalloc ( &cu_noisy_image, N*sizeof(float));
-        cudaMemcpy(cu_noisy_image, noisy_image, N*sizeof(float), cudaMemcpyHostToDevice); 
-
-        //STimer timer;
-        //timer.setObserver(new SObserverConsole());
-        //timer.tic();
-
+        cudaMemcpy(cu_noisy_image, noisy_image, N*sizeof(float), cudaMemcpyHostToDevice);
+        cudaDeviceSynchronize();
         // cida threads blocs
         int blockSize1d = 256;
         int numBlocks1d = (N + blockSize1d - 1) / blockSize1d;
-        dim3 blockSize3d(16, 16, 16);
-        dim3 gridSize3d = dim3((sx + 16 - 1) / 16, (sy + 16 - 1) / 16, (sz + 16 - 1) / 16);
 
         // init in cuda
         init_3d_buffers_sv<<<numBlocks1d, blockSize1d>>>(N, cu_denoised_image, cu_noisy_image, dual_images0, dual_images1, dual_images2, dual_images3);
-
+        cudaDeviceSynchronize();            
         // Denoising process
-        float inv_reg = 1.0 / regularization;
         for (int iter = 0; iter < niter; iter++) {
     
             // Primal optimization
             copy_buffer_3d<<<numBlocks1d, blockSize1d>>>(cu_denoised_image, N, auxiliary_image);
 
-            sv_3d_primal<<<blockSize3d,gridSize3d>>>(sx, sy, sz, primal_step, primal_weight, primal_weight_comp, 
-                                                     cu_denoised_image, cu_noisy_image, delta, dual_images0, dual_images1, 
-                                                     dual_images2, dual_images3);
+            sv_3d_primal<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, 
+                                                       cu_denoised_image, cu_noisy_image, delta, dual_images0, dual_images1, 
+                                                       dual_images2, dual_images3);
+                                        
             // Stopping criterion
+            cudaDeviceSynchronize();
             if (verbose){
                 int iter_n = niter / 10;
                 if (iter_n < 1) iter_n = 1;
@@ -318,9 +343,9 @@ namespace SImg{
             dual_3d_auxiliary<<<numBlocks1d, blockSize1d>>>(N, auxiliary_image, cu_denoised_image);
 
             // dual    
-            sv_3d_dual<<<blockSize3d,gridSize3d>>>(sx, sy, sz, dual_weight, dual_weight_comp, delta,
-                                                   auxiliary_image, dual_images0, 
-                                                   dual_images1, dual_images2, dual_images3);
+            sv_3d_dual<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, dual_weight, dual_weight_comp, delta,
+                                                     auxiliary_image, dual_images0, 
+                                                     dual_images1, dual_images2, dual_images3);
 
     
             // normalize
@@ -351,11 +376,13 @@ namespace SImg{
     
         // Splitting parameters
         float dual_step = SMath::max(0.001, SMath::min(0.01, regularization));
-        float primal_step = 0.99 / (0.5 + (64 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step);
+        float primal_step = 0.99 / (0.5 + (144 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step);
+
         float primal_weight = primal_step * weighting;
         float primal_weight_comp = primal_step * (1 - weighting);
         float dual_weight = dual_step * weighting;
         float dual_weight_comp = dual_step * (1 - weighting);
+        float inv_reg = 1.0 / regularization;
     
         // Initializations
         float* dual_images0;
@@ -380,32 +407,27 @@ namespace SImg{
         cudaMalloc ( &cu_denoised_image, N*sizeof(float));
         cudaMalloc ( &cu_noisy_image, N*sizeof(float));
         cudaMemcpy(cu_noisy_image, noisy_image, N*sizeof(float), cudaMemcpyHostToDevice); 
-    
-        //STimer timer;
-        //timer.setObserver(new SObserverConsole());
-        //timer.tic();
+        cudaDeviceSynchronize();
 
         // cuda threads blocs
         int blockSize1d = 256;
         int numBlocks1d = (N + blockSize1d - 1) / blockSize1d;
-        dim3 blockSize3d(16, 16, 16);
-        dim3 gridSize3d = dim3((sx + 16 - 1) / 16, (sy + 16 - 1) / 16, (sz + 16 - 1) / 16);
 
         // init in cuda
         init_3d_buffers_hv<<<numBlocks1d, blockSize1d>>>(N, cu_denoised_image, cu_noisy_image, dual_images0, dual_images1, dual_images2, dual_images3, dual_images4, dual_images5, dual_images6);
-        
+        cudaDeviceSynchronize();
         // Deconvolution process
-        float inv_reg = 1.0 / regularization;
         for (int iter = 0; iter < niter; ++iter) {
 
             // Primal optimization
             copy_buffer_3d<<<numBlocks1d, blockSize1d>>>(cu_denoised_image, N, auxiliary_image);
     
-            hv_3d_primal<<<gridSize3d, blockSize3d>>>(sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
+            hv_3d_primal<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
                                                      cu_denoised_image, cu_noisy_image, delta, dual_images0, dual_images1, 
                                                      dual_images2, dual_images3, dual_images4, dual_images5, dual_images6);
     
             // Stopping criterion
+            cudaDeviceSynchronize();
             if (verbose){
                 int iter_n = niter / 10;
                 if (iter_n < 1) iter_n = 1;
@@ -419,7 +441,7 @@ namespace SImg{
             dual_3d_auxiliary<<<numBlocks1d, blockSize1d>>>(N, auxiliary_image, cu_denoised_image);
     
             // dual    
-            hv_3d_dual<<<gridSize3d, blockSize3d>>>(sx, sy, sy, dual_weight, dual_weight_comp, sqrt2, delta,
+            hv_3d_dual<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, dual_weight, dual_weight_comp, sqrt2, delta,
                                                    auxiliary_image, dual_images0, 
                                                    dual_images1, dual_images2, dual_images3,
                                                    dual_images4, dual_images5, dual_images6);
@@ -449,7 +471,7 @@ namespace SImg{
         }
     }
 
-    void cuda_spitfire3d_denoise(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter, const float& delta, const std::string &method, bool verbose, SObservable *observable)
+    void cuda_spitfire3d_denoise(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const float& delta, const std::string &method, bool verbose, SObservable *observable)
     {
         // normalize the input image
         unsigned int bs = sx * sy * sz;
@@ -469,16 +491,17 @@ namespace SImg{
         }
 
         float *blurry_image_norm = new float[sx * sy * sz];
-        normL2(blurry_image, sx, sy, sz, 1, 1, blurry_image_norm);
+        normMinMax(blurry_image, sx, sy, sz, 1, 1, blurry_image_norm);
+        //normL2(blurry_image, sx, sy, sz, 1, 1, blurry_image_norm);
 
         // run denoising
         if (method == "SV")
         {
-            cuda_spitfire3d_denoise_sv(blurry_image_norm, sx, sy, sz, deconv_image, regularization, weighting, niter, delta, verbose, observable);
+            cuda_spitfire3d_denoise_sv(blurry_image_norm, sx, sy, sz, denoised_image, regularization, weighting, niter, delta, verbose, observable);
         }
         else if (method == "HV")
         {
-            cuda_spitfire3d_denoise_hv(blurry_image_norm, sx, sy, sz, deconv_image, regularization, weighting, niter, delta, verbose, observable);
+            cuda_spitfire3d_denoise_hv(blurry_image_norm, sx, sy, sz, denoised_image, regularization, weighting, niter, delta, verbose, observable);
         }
         else
         {
@@ -486,11 +509,11 @@ namespace SImg{
         }
 
         // normalize back intensities
-        float omin = deconv_image[0];
-        float omax = deconv_image[0];
+        float omin = denoised_image[0];
+        float omax = denoised_image[0];
         for (unsigned int i = 1; i < bs; ++i)
         {
-            float val = deconv_image[i];
+            float val = denoised_image[i];
             if (val > omax)
             {
                 omax = val;
@@ -502,10 +525,10 @@ namespace SImg{
         }
 
 #pragma omp parallel for
-        for (unsigned int i = 0; i < sx * sy * sz; ++i)
+        for (unsigned int i = 0; i < bs; ++i)
         {
-           deconv_image[i] = (deconv_image[i] - omin)/(omax-omin);
-           deconv_image[i] = deconv_image[i] * (imax - imin) + imin;
+            //denoised_image[i] = (denoised_image[i] - omin)/(omax-omin);
+            //denoised_image[i] = denoised_image[i] * (imax - imin) + imin;
         }
 
         delete[] blurry_image_norm;
