@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     SImg::toc();
     delete STimerAccess::instance();
 
-    SImageReader::write(new SImageFloat(deconv_image, sx, sy, sz), SAMPLE3DDECONVHV);
+    //SImageReader::write(new SImageFloat(deconv_image, sx, sy, sz), SAMPLE3DDECONVHV);
 
     // calculate error with the reference image
     std::cout << "calculate error:" << std::endl;

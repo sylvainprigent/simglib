@@ -34,7 +34,7 @@ int main(int argc, char *argv[])
     SObservable *observable = new SObservable();
     observable->addObserver(observer);
 
-    float regularization = pow(2, -10);
+    float regularization = pow(2, -30);
     float weighting = 0.6; 
     float niter = 200;
     float delta = 1.0;
@@ -59,7 +59,7 @@ int main(int argc, char *argv[])
     SImg::toc();
     delete STimerAccess::instance();
 
-    SImageReader::write(new SImageFloat(deconv_image, sx, sy, sz), SAMPLE3DDECONVSV);
+    //SImageReader::write(new SImageFloat(deconv_image, sx, sy, sz), SAMPLE3DDECONVSV);
 
     // calculate error with the reference image
     std::cout << "calculate error:" << std::endl;

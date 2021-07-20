@@ -111,15 +111,22 @@ void d_sv_primal_3d(unsigned int N, unsigned int sx, unsigned int sy, unsigned i
                     float primal_weight_comp, float sqrt2, float* deconv_image, float delta, float* residue_image, 
                     float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
+    {
+        return;
+    }
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
     }
 
-    unsigned int p = z + sz * (y + sy * x);
     unsigned int pxm = p - sz * sy;
     unsigned int pym = p - sz;
     unsigned int pzm = p - 1;
@@ -152,14 +159,22 @@ void d_hv_primal_3d(unsigned int N, unsigned int sx, unsigned int sy, unsigned i
                     float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3,
                     float* dual_images4, float* dual_images5, float* dual_images6)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
+    {
+        return;
+    }
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
     }
-    unsigned int p = z + sz * (y + sy * x);
+
     unsigned int pxm = p - sz * sy;
     unsigned int pym = p - sz;
     unsigned int pzm = p - 1;
@@ -205,18 +220,25 @@ void d_dual_auxiliary(unsigned int N, float* auxiliary_image, float* deconv_imag
 }
 
 __global__
-void d_sv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, 
+void d_sv_3d_dual(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, 
                   float delta, 
                   float* auxiliary_image, float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
+    {
+        return;
+    }
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
     }
-    unsigned int p = z + sz * (y + sy * x);
     unsigned int pxp = p + sz * sy;
     unsigned int pyp = p + sz;
     unsigned int pzp = p + 1;
@@ -228,19 +250,26 @@ void d_sv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_
 }
 
 __global__
-void d_hv_3d_dual(unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, 
+void d_hv_3d_dual(unsigned int N, unsigned int sx, unsigned int sy, unsigned int sz, float dual_weight, float dual_weight_comp, float sqrt2, 
                   float delta,  
                   float* auxiliary_image, float* dual_images0, float* dual_images1, float* dual_images2, float* dual_images3,
                   float* dual_images4, float* dual_images5, float* dual_images6)
 {
-    int x = blockIdx.x * blockDim.x + threadIdx.x;
-    int y = blockIdx.y * blockDim.y + threadIdx.y;
-    int z = blockIdx.z * blockDim.z + threadIdx.z;
+    int p = blockIdx.x * blockDim.x + threadIdx.x;
+    if (p >= N)
+    {
+        return;
+    }
+
+    int z = p % sz;
+    int pz = (p-z)/sz;
+    int y = pz % sy;
+    int x = (pz-y)/sy;     
+
     if (x < 1 || x >= sx-1 || y < 1 || y >= sy-1 || z < 1 || z >= sz-1)
     {
         return;
     }
-    unsigned int p = z + sz * (y + sy * x);  
     unsigned int pxm = p - sz*sy;
     unsigned int pym = p - sz;  
     unsigned int pzm = p - 1;
@@ -367,8 +396,6 @@ namespace SImg
         int blockSize1d = 256;
         int numBlocks1d = (N + blockSize1d - 1) / blockSize1d;
         int numBlocks1dfft = (Nfft + blockSize1d - 1) / blockSize1d;
-        dim3 blockSize3d(16, 16, 16);
-        dim3 gridSize3d = dim3((sx + 16 - 1) / 16, (sy + 16 - 1) / 16, (sz + 16 - 1) / 16);
 
         d_sv_init_3d_buffers<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, cu_blurry_image, dual_image0, dual_image1, dual_image2, dual_image3);
         //cudaDeviceSynchronize();
@@ -435,7 +462,7 @@ namespace SImg
             cudaDeviceSynchronize(); 
 
             // primal
-            d_sv_primal_3d<<<gridSize3d, blockSize3d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
+            d_sv_primal_3d<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
                                                         cu_deconv_image, delta, residue_image, dual_image0, dual_image1, 
                                                         dual_image2, dual_image3);
             // Stopping criterion
@@ -454,7 +481,7 @@ namespace SImg
             d_dual_auxiliary<<<numBlocks1d, blockSize1d>>>(N, auxiliary_image, cu_deconv_image);
 
             // dual    
-            d_sv_3d_dual<<<gridSize3d, blockSize3d>>>(sx, sy, sz, dual_weight, dual_weight_comp, sqrt2, 
+            d_sv_3d_dual<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, dual_weight, dual_weight_comp, sqrt2, 
                                                       delta, auxiliary_image, dual_image0, 
                                                       dual_image1, dual_image2, dual_image3);                                         
 
@@ -564,8 +591,6 @@ namespace SImg
         int blockSize1d = 256;
         int numBlocks1d = (N + blockSize1d - 1) / blockSize1d;
         int numBlocks1dfft = (Nfft + blockSize1d - 1) / blockSize1d;
-        dim3 blockSize3d(16, 16, 16);
-        dim3 gridSize3d = dim3((sx + 16 - 1) / 16, (sy + 16 - 1) / 16, (sz + 16 - 1) / 16);
 
         d_hv_init_3d_buffers<<<numBlocks1d, blockSize1d>>>(N, cu_deconv_image, cu_blurry_image, dual_image0, dual_image1, dual_image2, dual_image3, dual_image4, dual_image5, dual_image6);
         //cudaDeviceSynchronize();
@@ -634,7 +659,7 @@ namespace SImg
             cudaDeviceSynchronize(); 
 
             // primal
-            d_hv_primal_3d<<<gridSize3d, blockSize3d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
+            d_hv_primal_3d<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, primal_step, primal_weight, primal_weight_comp, sqrt2, 
                                                         cu_deconv_image, delta, residue_image, dual_image0, dual_image1, 
                                                         dual_image2, dual_image3, dual_image4, dual_image5, dual_image6);
             //cudaDeviceSynchronize();
@@ -655,7 +680,7 @@ namespace SImg
             //cudaDeviceSynchronize();
 
             // dual    
-            d_hv_3d_dual<<<gridSize3d, blockSize3d>>>(sx, sy, sz, dual_weight, dual_weight_comp, sqrt2, 
+            d_hv_3d_dual<<<numBlocks1d, blockSize1d>>>(N, sx, sy, sz, dual_weight, dual_weight_comp, sqrt2, 
                                                       delta, auxiliary_image, dual_image0, 
                                                       dual_image1, dual_image2, dual_image3,
                                                       dual_image4, dual_image5, dual_image6);

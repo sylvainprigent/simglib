@@ -1,5 +1,3 @@
 #include "../src/cudenoise/spitfire2d.h"
 #include "../src/cudenoise/spitfire3d.h"
 #include "../src/cudenoise/spitfire4d.h"
-#include "../src/cudenoise/indexes.h"
-#include "../src/cudenoise/smeanfilter.h"
