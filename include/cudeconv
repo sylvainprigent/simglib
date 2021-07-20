@@ -1,2 +1,3 @@
 #include "../src/cudeconv/spitfire2d.h"
 #include "../src/cudeconv/spitfire3d.h"
+#include "../src/cudeconv/srichardsonlucy.h"

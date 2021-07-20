@@ -20,6 +20,7 @@ enable_testing()
 ## #################################################################
 
 set(${PROJECT_NAME}_MAIN_SOURCES
+  TestCuRichardsonLucy.cpp
   TestSpitfireCuDeconv2dHV.cpp
   TestSpitfireCuDeconv2dSV.cpp
   TestSpitfireCuDeconv3dHV.cpp
@@ -40,6 +41,7 @@ if(EXISTS ${PROJECT_SOURCE_DIR}/../dataset/pollen_psf.tif)
   set(PSF3D ${PROJECT_SOURCE_DIR}/../dataset/pollen_psf.tif)
 endif()
 
+set(SAMPLE2DDECONVRL ${PROJECT_SOURCE_DIR}/results/TestRL_ref.tif)
 set(SAMPLE2DDECONVSV ${PROJECT_SOURCE_DIR}/results/TestSpitfire2dSV_ref.tif)
 set(SAMPLE2DDECONVHV ${PROJECT_SOURCE_DIR}/results/TestSpitfire2dHV_ref.tif)
 set(SAMPLE2DDECONVRL ${PROJECT_SOURCE_DIR}/results/TestRichardsonLucy2d_ref.tif)

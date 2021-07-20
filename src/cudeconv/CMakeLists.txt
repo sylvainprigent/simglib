@@ -18,11 +18,13 @@ project(cudeconv LANGUAGES CUDA CXX)
 SET(SRC_FILES
   spitfire2d.cu
   spitfire3d.cu
+  srichardsonlucy.cu
 )
 
 SET(HEADERS_FILES
   spitfire2d.h
   spitfire3d.h
+  srichardsonlucy.h
 )
   
 ## #################################################################
