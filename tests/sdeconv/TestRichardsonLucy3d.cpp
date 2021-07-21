@@ -16,7 +16,7 @@
 int main(int argc, char *argv[])
 {
     std::cout << "input image = " << SAMPLE3D << std::endl;
-    std::cout << "ref image = " << SAMPLE3DDECONVHV << std::endl;
+    std::cout << "ref image = " << SAMPLE3DDECONVRL << std::endl;
 
     SImageFloat *inputImage = dynamic_cast<SImageFloat *>(SImageReader::read(SAMPLE3D, 32));
     float imax = inputImage->getMax();

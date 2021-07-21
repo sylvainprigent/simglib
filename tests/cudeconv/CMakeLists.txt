@@ -20,7 +20,8 @@ enable_testing()
 ## #################################################################
 
 set(${PROJECT_NAME}_MAIN_SOURCES
-  TestCuRichardsonLucy.cpp
+  TestCuRichardsonLucy2d.cpp
+  TestCuRichardsonLucy3d.cpp
   TestSpitfireCuDeconv2dHV.cpp
   TestSpitfireCuDeconv2dSV.cpp
   TestSpitfireCuDeconv3dHV.cpp
