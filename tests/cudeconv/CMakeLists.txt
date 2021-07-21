@@ -22,6 +22,8 @@ enable_testing()
 set(${PROJECT_NAME}_MAIN_SOURCES
   TestCuRichardsonLucy2d.cpp
   TestCuRichardsonLucy3d.cpp
+  TestCuWiener2d.cpp
+  TestCuWiener3d.cpp
   TestSpitfireCuDeconv2dHV.cpp
   TestSpitfireCuDeconv2dSV.cpp
   TestSpitfireCuDeconv3dHV.cpp
