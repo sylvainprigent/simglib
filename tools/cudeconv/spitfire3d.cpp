@@ -20,6 +20,7 @@ int main(int argc, char *argv[])
         cmdParser.addParameterSelect("-method", "Deconvolution method 'SV' or 'HV", "HV");
         cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 11);
         cmdParser.addParameterFloat("-weighting", "Weighting parameter", 0.6);
+        cmdParser.addParameterFloat("-delta", "Scale delta in Z", 1.0);
         cmdParser.addParameterInt("-niter", "Nb iterations", 200);
 
         cmdParser.addParameterBoolean("-verbose", "Print iterations to console", true);
@@ -33,6 +34,7 @@ int main(int argc, char *argv[])
         const std::string method = cmdParser.getParameterString("-method");
         const float regularization = cmdParser.getParameterFloat("-regularization");
         const float weighting = cmdParser.getParameterFloat("-weighting");
+        const float delta = cmdParser.getParameterFloat("-delta");
         const int niter = cmdParser.getParameterInt("-niter");
         const bool verbose = cmdParser.getParameterBool("-verbose");
 

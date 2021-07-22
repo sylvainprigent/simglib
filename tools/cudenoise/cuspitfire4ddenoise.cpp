@@ -18,6 +18,8 @@ int main(int argc, char *argv[])
         cmdParser.addParameterSelect("-method", "Deconvolution method 'SV' or 'HV", "HV");
         cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 11);
         cmdParser.addParameterFloat("-weighting", "Weighting parameter", 0.6);
+        cmdParser.addParameterFloat("-deltaz", "Scale delta in Z", 1.0);
+        cmdParser.addParameterFloat("-deltat", "Scale delta in t", 1.0);
         cmdParser.addParameterInt("-niter", "Nb iterations", 200);
 
         cmdParser.addParameterBoolean("-verbose", "Print iterations to console", true);
@@ -30,6 +32,8 @@ int main(int argc, char *argv[])
         const std::string method = cmdParser.getParameterString("-method");
         const float regularization = cmdParser.getParameterFloat("-regularization");
         const float weighting = cmdParser.getParameterFloat("-weighting");
+        const float deltaz = cmdParser.getParameterFloat("-deltaz");
+        const float deltat = cmdParser.getParameterFloat("-deltat");
         const int niter = cmdParser.getParameterInt("-niter");
         const bool verbose = cmdParser.getParameterBool("-verbose");
 
@@ -44,6 +48,8 @@ int main(int argc, char *argv[])
             observer->message("cuda spitfire4d: method: " + method);
             observer->message("cuda spitfire4d: regularization parameter: " + std::to_string(regularization));
             observer->message("cuda spitfire4d: weighting parameter: " + std::to_string(weighting));
+            observer->message("cuda spitfire4d: delta parameter: " + std::to_string(deltaz));
+            observer->message("cuda spitfire4d: delta parameter: " + std::to_string(deltat));
             observer->message("cuda spitfire4d: nb iterations: " + std::to_string(niter));
         }
 
@@ -62,10 +68,10 @@ int main(int argc, char *argv[])
         // run deconvolution
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
-        //SImg::tic();
-        float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy*sz));
-        SImg::cuda_spitfire4d_denoise(inputImage->getBuffer(), sx, sy, sz, st, denoised_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
-        //SImg::toc();
+        float *denoised_image = (float *)malloc(sizeof(float) * (sx*sy*sz*st));
+        SImg::tic();
+        SImg::cuda_spitfire4d_denoise(inputImage->getBuffer(), sx, sy, sz, st, denoised_image, regularization, weighting, deltaz, deltat, niter, method, verbose, observable);
+        SImg::toc();
 
         SImageFloat* denImage = new SImageFloat(denoised_image, sx, sy, sz, st);
         SImageReader::write(denImage, outputImageFile);

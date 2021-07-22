@@ -60,10 +60,10 @@ int main(int argc, char *argv[])
         // run deconvolution
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
-        //SImg::tic();
-        float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy));
+        SImg::tic();
+        float *denoised_image = (float *)malloc(sizeof(float) * (sx*sy));
         SImg::cuda_spitfire2d_denoise(inputImage->getBuffer(), sx, sy, denoised_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
-        //SImg::toc();
+        SImg::toc();
 
         SImageFloat* denImage = new SImageFloat(denoised_image, sx, sy);
         SImageReader::write(denImage, outputImageFile);

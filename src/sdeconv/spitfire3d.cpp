@@ -123,6 +123,7 @@ namespace SImg
         float inv_reg = 1.0 / regularization;
 
 #ifdef SL_USE_OPENMP
+        observable->notify("Use " + std::to_string(omp_get_max_threads()) + " threads");
         fftwf_plan_with_nthreads(omp_get_max_threads());
 #endif
 
@@ -272,6 +273,7 @@ namespace SImg
         float sqrt2 = sqrt(2.);
 
 #ifdef SL_USE_OPENMP
+        observable->notify("Use " + std::to_string(omp_get_max_threads()) + " threads");
         omp_set_num_threads(omp_get_max_threads());
 
         int fftThreads = fftwf_init_threads();

@@ -9,6 +9,10 @@
 #include "math.h"
 #include <score>
 
+#ifdef SL_USE_OPENMP
+#include "omp.h"
+#endif
+
 namespace SImg
 {
 
@@ -34,6 +38,12 @@ namespace SImg
 
     void spitfire3d_sv(float *noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const float &delta, bool verbose, SObservable *observable)
     {
+
+        #ifdef SL_USE_OPENMP
+        omp_set_num_threads(omp_get_max_threads());
+        observable->notify("Use " + std::to_string(omp_get_max_threads()) + " threads");
+#endif
+
         unsigned int N = sx * sy * sz;
 
         // Splitting parameters
@@ -178,9 +188,15 @@ namespace SImg
 
     void spitfire3d_hv(float *noisy_image, unsigned int sx, unsigned int sy, unsigned int sz, float *denoised_image, const float &regularization, const float &weighting, const unsigned int &niter, const float &delta, bool verbose, SObservable *observable)
     {
+
+        #ifdef SL_USE_OPENMP
+        omp_set_num_threads(omp_get_max_threads());
+        observable->notify("Use " + std::to_string(omp_get_max_threads()) + " threads");
+#endif
+
         unsigned int N = sx * sy * sz;
         float sqrt2 = sqrt(2.);
-
+ 
         // Splitting parameters
         float dual_step = SMath::max(0.001, SMath::min(0.01, regularization));
         float primal_step = 0.99 / (0.5 + (144 * pow(weighting, 2.) + pow(1 - weighting, 2.)) * dual_step);
