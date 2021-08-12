@@ -565,10 +565,27 @@ namespace SImg
         }
 
 // normalize back intensities
-#pragma omp parallel for
-        for (unsigned int i = 0; i < sx * sy; ++i)
+       // normalize back intensities
+        float omin = deconv_image[0];
+        float omax = deconv_image[0];
+        for (unsigned int i = 1; i < bs; ++i)
         {
-           deconv_image[i] = deconv_image[i] * (imax - imin) + imin;
+            float val = deconv_image[i];
+            if (val > omax)
+            {
+                omax = val;
+            }
+            if (val < omin)
+            {
+                omin = val;
+            }
+        }
+
+#pragma omp parallel for
+        for (unsigned int i = 0; i < bs; ++i)
+        {
+            deconv_image[i] = (deconv_image[i] - omin)/(omax-omin);
+            deconv_image[i] = deconv_image[i] * (imax - imin) + imin;
         }
 
         delete[] blurry_image_norm;
