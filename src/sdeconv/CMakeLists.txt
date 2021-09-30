@@ -27,7 +27,7 @@ SET(SRC_FILES
 
 SET(HEADERS_FILES
   sgaussianpsf.h
-  sgibsonlannipsf.cpp
+  sgibsonlannipsf.h
   spitfire2d.h
   spitfire3d.h
   srichardsonlucy.h

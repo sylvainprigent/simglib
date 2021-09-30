@@ -12,8 +12,6 @@ namespace SImg{
 
 void gradient2d(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* bufferGx, float* bufferGy)
 {
-    bufferGx = new float[sx*sy*sz*st*sc];
-    bufferGy = new float[sx*sy*sz*st*sc];
     for (unsigned int c = 0 ; c < sc ; c++){
         for (unsigned int t = 0 ; t < st ; t++){
             for (unsigned int z = 0 ; z < sz ; z++){
@@ -114,7 +112,8 @@ float gradient3dL2(float* image, unsigned int sx, unsigned int sy, unsigned int 
 
 float gradient2dL1(float* image,  unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc)
 {
-     float* bufferGx; float* bufferGy;
+    float* bufferGx = new float[sx*sy*sz*st*sc];
+    float* bufferGy = new float[sx*sy*sz*st*sc];
     gradient2d(image, sx, sy, sz, st, sc, bufferGx, bufferGy);
     unsigned long bs = sx*sy*sz*st*sc;
     float normL1 = 0.0;

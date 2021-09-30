@@ -3,7 +3,6 @@
 #include "../src/sfiltering/SGradient.h"
 #include "../src/sfiltering/SGradientFilter.h"
 #include "../src/sfiltering/SGaussianFilter.h"
-#include "../src/sfiltering/SGaussian3dFilter.h"
 #include "../src/sfiltering/SMeanFilter.h"
 #include "../src/sfiltering/SMinMaxFilter.h"
 #include "../src/sfiltering/SMedianFilter.h"

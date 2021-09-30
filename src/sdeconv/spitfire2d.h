@@ -58,4 +58,7 @@ namespace SImg
     /// \brief use default observable as command line observer
     void spitfire2d_deconv_hv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting, const unsigned int &niter);
 
+    /// \brief Calcultate the energy of the HV deconvolution
+    float energy_hv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting);
+
 }

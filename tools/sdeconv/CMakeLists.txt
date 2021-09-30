@@ -142,3 +142,8 @@ INSTALL(TARGETS simgspitfiredeconv2dplan
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
 )
+
+SET(NAME simgspitfiredeconv2destimate)
+SET(FILE ${SRC_FILES} spitfire2d_estimate.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)

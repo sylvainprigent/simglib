@@ -591,4 +591,36 @@ namespace SImg
         delete[] blurry_image_norm;
     }
 
+    float energy_hv(float *blurry_image, unsigned int sx, unsigned int sy, float *psf, float *deconv_image, const float &regularization, const float &weighting)
+    {
+        float energy = 0.0;
+        float data_term = 0.0;
+        float reg_term = 0.0;
+
+        // Data term
+        std::cout << "energy_hv: calculate data term" << std::endl;
+        float* conv_output = new float[sx*sy];
+        std::cout << "energy_hv: calculate data term 2" << std::endl;
+        conv_output = convolution_2d(deconv_image, psf, sx, sy);
+        std::cout << "energy_hv: calculate data term diff" << std::endl;
+        for (unsigned int i = 0 ; i < sx*sy ; i++){
+            data_term += pow(blurry_image[i] - conv_output[i],2);
+        }
+
+        // reg term
+        std::cout << "energy_hv: calculate reg term" << std::endl;
+        float dxx, dyy, dxy;
+        for (int x = 1 ; x < sx-1 ; x++)
+        {
+            for (int y = 1 ; y < sy-1 ; y++)
+            {
+                dxx = deconv_image[sy*(x+1)+y] - 2* deconv_image[sy*x+y] - deconv_image[sy*(x-1)+y];
+                dyy = deconv_image[sy*x+y+1] - 2*deconv_image[sy*x+y] - deconv_image[sy*x+y-1];
+                dxy = deconv_image[sy*(x+1)+y+1] - deconv_image[sy*(x+1)+y] - deconv_image[sy*(x)+y+1] + deconv_image[sy*x+y];
+                reg_term += sqrt(weighting*weighting*(dxx*dxx + 2*dxy*dxy + dyy*dyy) + (1-weighting)*(1-weighting)*deconv_image[sy*x+y]*deconv_image[sy*x+y]);
+            }
+        }
+        return data_term + regularization*reg_term;
+    }
+
 }

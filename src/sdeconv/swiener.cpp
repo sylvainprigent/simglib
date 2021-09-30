@@ -27,7 +27,7 @@ namespace SImg
     void wiener_deconv_2d(float *buffer_in, float *psf, float *buffer_out, unsigned int sx, unsigned int sy, const float& lambda, const int& connectivity)
     {
 
-        // memory initialization
+        // memory initialization 
         unsigned int n = sx * sy;
         unsigned int n_fft = sx * (sy / 2 + 1);
         float scale = 1.0 / float(n_fft);
