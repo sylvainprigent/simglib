@@ -147,3 +147,21 @@ SET(NAME simgspitfiredeconv2destimate)
 SET(FILE ${SRC_FILES} spitfire2d_estimate.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
+
+SET(NAME simgspitfiredeconv2destimatesqrt)
+SET(FILE ${SRC_FILES} spitfire2d_estimate_sqrt.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
+
+
+SET(NAME simgspitfiredeconv3destimate)
+SET(FILE ${SRC_FILES} spitfire3d_estimate.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
+
+
+SET(NAME simgspitfiredeconv2airbus)
+SET(FILE ${SRC_FILES} spitfire2d_airbus.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sdenoise spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
+

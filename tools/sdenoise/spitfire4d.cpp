@@ -61,7 +61,7 @@ int main(int argc, char *argv[])
         unsigned int st = inputImage->getSizeT();
         if (inputImage->getSizeC() > 1)
         {
-            throw SException("spitfire4d can process only 3D gray scale images");
+            throw SException("spitfire4d can process only 3D+t gray scale images");
         }
         float imax = inputImage->getMax();
         float imin = inputImage->getMin();
@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
         SObservable * observable = new SObservable();
         observable->addObserver(observer);
 
-                // min max normalize intensities
+        // min max normalize intensities
         float* noisy_image_norm = new float[sx*sy*sz*st];
         SImg::normMinMax(noisy_image, sx, sy, sz, st, 1, noisy_image_norm);
         delete inputImage;
@@ -114,7 +114,7 @@ int main(int argc, char *argv[])
         SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz, st), outputImageFile);
 
         delete[] noisy_image_norm;
-        delete denoised_image;
+        delete[] denoised_image;
         delete observable;
     }
     catch (SException &e)

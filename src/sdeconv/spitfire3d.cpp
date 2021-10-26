@@ -301,6 +301,7 @@ namespace SImg
 
         float *adjoint_PSF_shift = new float[N];
         shift3D(adjoint_PSF, adjoint_PSF_shift, sx, sy, sz, -(int(sx) - 1) % 2, -(int(sy) - 1) % 2, -int((sz - 1)) % 2);
+        delete[] adjoint_PSF; 
 
         float *adjoint_OTFReal = new float[N];
         shift3D(adjoint_PSF_shift, adjoint_OTFReal, sx, sy, sz, int(-float(sx) / 2.0), int(-float(sy) / 2.0), int(-float(sz) / 2.0));
@@ -349,8 +350,8 @@ namespace SImg
         fft3D(adjoint_OTFReal, adjoint_OTF, sx, sy, sz);
 
         //free(blurry_array);
-        free(OTFReal);
-        free(adjoint_OTFReal);
+        delete[] OTFReal;
+        delete[] adjoint_OTFReal;
 
 #pragma omp parallel for
         for (int i = 0; i < Nfft; i++)
@@ -517,6 +518,11 @@ namespace SImg
         free(auxiliary_image);
         free(residue_image);
 
+        fftwf_destroy_plan(Planfft);
+        fftwf_destroy_plan(Planifft);
+
+        fftwf_free(OTF);
+        fftwf_free(adjoint_OTF);
         fftwf_free(blurry_image_FT);
         fftwf_free(deconv_image_FT);
         fftwf_free(residue_image_FT);
@@ -587,5 +593,48 @@ namespace SImg
         }
 
         delete[] blurry_image_norm;
+    }
+
+    float energy_3d_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float& delta)
+    {
+        float energy = 0.0;
+        float data_term = 0.0;
+        float reg_term = 0.0;
+
+        // Data term
+        //std::cout << "energy_hv: calculate data term" << std::endl;
+        float* conv_output = new float[sx*sy*sz];
+        //std::cout << "energy_hv: calculate data term 2" << std::endl;
+        conv_output = convolution_3d(deconv_image, psf, sx, sy, sz);
+        //std::cout << "energy_hv: calculate data term diff" << std::endl;
+        for (unsigned int i = 0 ; i < sx*sy*sz ; i++){
+            data_term += pow(blurry_image[i] - conv_output[i],2);
+        }
+        delete[] conv_output; 
+
+        // reg term
+        //std::cout << "energy_hv: calculate reg term" << std::endl;
+        float dxx, dyy, dzz, dxy, dxz, dyz;
+        for (int x = 1 ; x < sx-1 ; x++)
+        {
+            for (int y = 1 ; y < sy-1 ; y++)
+            {
+                for (int z = 1 ; z < sz-1 ; z++)
+                {      
+                    int p = z + sz * (y + sy * x);
+
+                    dxx = deconv_image[z + sz*(sy*(x+1)+y)] - 2* deconv_image[p] - deconv_image[z+sz*(sy*(x-1)+y)];
+                    dyy = deconv_image[z + sz*(sy*x+y+1)] - 2*deconv_image[p] - deconv_image[z + sz*(sy*x+y-1)];
+                    dzz = delta * delta * (deconv_image[z+1 + sz * (y + sy * x)] - 2*deconv_image[p] - deconv_image[z-1 + sz * (y + sy * x)]);
+
+                    dxy = deconv_image[z + sz * (y+1 + sy * (x+1))] - deconv_image[z + sz * (y + sy * (x+1))] - deconv_image[z + sz * (y+1 + sy * (x))] + deconv_image[p];
+                    dxz = delta * (deconv_image[z+1 + sz * (y + sy * (x+1))] - deconv_image[z + sz * (y + sy * (x+1))] - deconv_image[z+1 + sz * (y + sy * (x))] + deconv_image[p]);
+                    dyz = delta * (deconv_image[z+1 + sz * (y+1 + sy * (x))] - deconv_image[z + sz * (y+1 + sy * (x))] - deconv_image[z+1 + sz * (y + sy * (x))] + deconv_image[p]);
+
+                    reg_term += sqrt(weighting*weighting*(dxx*dxx + dyy*dyy + dzz*dzz + 2*dxy*dxy + 2*dxz*dxz + 2*dyz*dyz) + (1-weighting)*(1-weighting)*deconv_image[p]*deconv_image[p]);
+                }
+            }
+        }
+        return data_term + regularization*reg_term;
     }
 }

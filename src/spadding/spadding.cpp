@@ -71,6 +71,59 @@ int padding_3d(float* buffer_in, float* buffer_out, const unsigned int sx, const
     return 0;
 }
 
+int mirror_padding_2d(float* buffer_in, float* buffer_out, const unsigned int sx, const unsigned int sy, const unsigned int sx_out, const unsigned int sy_out)
+{
+    int ctrl = padding_2d(buffer_in, buffer_out, sx, sy, sx_out, sy_out);
+    if (ctrl > 0){
+        return 1;
+    }
+
+    unsigned int padding_x = (int(sx_out) - int(sx))/2;
+    unsigned int padding_y = (int(sy_out) - int(sy))/2;
+    unsigned int x, y;
+
+    for (y = 0 ; y < sy ; y++){
+        // vertical right
+        for (x = 0 ; x < padding_x ; x++){
+            buffer_out[sy_out*(padding_x+sx+x)+y+padding_y] = buffer_in[sy*(sx-x-1)+y];
+        }
+    }
+    for (y = 0 ; y < sy ; y++){
+        // vertical left
+        for (x = 0 ; x <= padding_x ; x++){
+            buffer_out[sy_out*(padding_x-x)+y+padding_y] = buffer_in[sy*(x)+y];
+        }
+    }
+    for (x = 0 ; x < sx ; x++){
+        for (y = 0 ; y <= padding_y ; y++){
+            buffer_out[sy_out*(padding_x+x)+y+padding_y+sy] = buffer_in[sy*(x)+sy-y-1];
+            buffer_out[sy_out*(padding_x+x)-y+padding_y] = buffer_in[sy*(x)+y];
+        }
+    }
+    for (x = 0 ; x < padding_x; x++){
+        // top left corner
+        for (y = 0 ; y < padding_y; y++){
+            buffer_out[(sy_out*x + y)] = buffer_out[(sy_out*(2*padding_x-x) + y)];       
+        }
+        // bottom left corner
+        for (y = sy + padding_y ; y < sy_out; y++){
+            buffer_out[(sy_out*x + y)] = buffer_out[(sy_out*(2*padding_x-x) + y)];       
+        }
+    }
+
+    for (x = 0; x < padding_x; x++){
+        // top right corner
+        for (y = 0 ; y < padding_y; y++){
+            buffer_out[(sy_out*(x+sx+padding_x) + y)] = buffer_out[(sy_out*(sx+padding_x-x-1) + y)];       
+        }
+        // bottom right corner
+        for (y = sy + padding_y ; y < sy_out; y++){
+            buffer_out[(sy_out*(x+sx+padding_x) + y)] = buffer_out[(sy_out*(sx+padding_x-x-1) + y)];         
+        }
+    }
+    return 0;
+}
+
 int mirror_padding_3d(float* buffer_in, float* buffer_out, const unsigned int sx, const unsigned int sy, const unsigned int sz, const unsigned int sx_out, const unsigned int sy_out, const unsigned int sz_out)
 {
     int ctrl = padding_3d(buffer_in, buffer_out, sx, sy, sz, sx_out, sy_out, sz_out);
@@ -81,49 +134,50 @@ int mirror_padding_3d(float* buffer_in, float* buffer_out, const unsigned int sx
     unsigned int padding_x = (int(sx_out) - int(sx))/2;
     unsigned int padding_y = (int(sy_out) - int(sy))/2;
     unsigned int padding_z = (int(sz_out) - int(sz))/2;
+    unsigned int x, y, z, z_;
 
-    unsigned int x, y, z;
-    for (z = 0 ; z < sz ; z++){
+    for (z = padding_z ; z < sz_out-padding_z ; z++){
+        z_ = z - padding_z;
         for (y = 0 ; y < sy ; y++){
+            // vertical right
+            for (x = 0 ; x < padding_x ; x++){
+                buffer_out[z+sz_out*(sy_out*(padding_x+sx+x)+y+padding_y)] = buffer_in[z_+ sz*(sy*(sx-x-1)+y)];
+            }
+        }
+        for (y = 0 ; y < sy ; y++){
+            // vertical left
             for (x = 0 ; x <= padding_x ; x++){
-                buffer_out[z+padding_z + sz_out*(sy_out*(padding_x+sx+x)+y+padding_y)] = buffer_in[z + sz*(sy*(sx-x-1)+y)];
-                buffer_out[z+padding_z + sz_out*(sy_out*(padding_x-x)+y+padding_y)] = buffer_in[z + sz*(sy*(x)+y)];
+                buffer_out[z+sz_out*(sy_out*(padding_x-x)+y+padding_y)] = buffer_in[z_+sz*(sy*(x)+y)];
             }
         }
         for (x = 0 ; x < sx ; x++){
             for (y = 0 ; y <= padding_y ; y++){
-                buffer_out[z+padding_z + sz_out*(sy_out*(padding_x+x)+y+padding_y+sy)] = buffer_in[z+sz*(sy*(x)+sy-y-1)];
-                buffer_out[z+padding_z + sz_out*(sy_out*(padding_x+x)-y+padding_y)] = buffer_in[z+sz*(sy*(x)+y)];
+                buffer_out[z+sz_out*(sy_out*(padding_x+x)+y+padding_y+sy)] = buffer_in[z_+sz*(sy*(x)+sy-y-1)];
+                buffer_out[z+sz_out*(sy_out*(padding_x+x)-y+padding_y)] = buffer_in[z_+sz*(sy*(x)+y)];
             }
         }
-    }
-
-    for (z = 0 ; z < sz ; z++){
-        
         for (x = 0 ; x < padding_x; x++){
             // top left corner
             for (y = 0 ; y < padding_y; y++){
-                buffer_out[z+padding_z + sz_out*(sy_out*x + y)] = buffer_out[z+padding_z + sz_out*(sy_out*(2*padding_x-x) + y)];       
+                buffer_out[z+sz_out*(sy_out*x + y)] = buffer_out[z+sz_out*((sy_out*(2*padding_x-x) + y))];       
             }
             // bottom left corner
             for (y = sy + padding_y ; y < sy_out; y++){
-                buffer_out[z+padding_z + sz_out*(sy_out*x + y)] = buffer_out[z+padding_z + sz_out*(sy_out*(2*padding_x-x) + y)];       
+                buffer_out[z+sz_out*(sy_out*x + y)] = buffer_out[z+sz_out*((sy_out*(2*padding_x-x) + y))];       
             }
         }
 
         for (x = 0; x < padding_x; x++){
             // top right corner
             for (y = 0 ; y < padding_y; y++){
-                buffer_out[z+padding_z + sz_out*(sy_out*(x+sx+padding_x) + y)] = buffer_out[z+padding_z + sz_out*(sy_out*(sx+padding_x-x-1) + y)];       
+                buffer_out[z+sz_out*(sy_out*(x+sx+padding_x) + y)] = buffer_out[z+sz_out*(sy_out*(sx+padding_x-x-1) + y)];       
             }
             // bottom right corner
             for (y = sy + padding_y ; y < sy_out; y++){
-                buffer_out[z+padding_z + sz_out*(sy_out*(x+sx+padding_x) + y)] = buffer_out[z+padding_z + sz_out*(sy_out*(sx+padding_x-x-1) + y)];         
+                buffer_out[z+sz_out*(sy_out*(x+sx+padding_x) + y)] = buffer_out[z+sz_out*(sy_out*(sx+padding_x-x-1) + y)];         
             }
         }
     }
-    
-
 
     int dz;
     for (z=0 ; z <= padding_z ; z++){
@@ -138,32 +192,54 @@ int mirror_padding_3d(float* buffer_in, float* buffer_out, const unsigned int sx
     return 0;
 }
 
+int mirror_padding_4d(float* buffer_in, float* buffer_out, const unsigned int sx, const unsigned int sy, const unsigned int sz, const unsigned int st, const unsigned int sx_out, const unsigned int sy_out, const unsigned int sz_out, const unsigned int st_out)
+{
+    return 0;
+}
+
 int hanning_padding_2d(float* buffer_in, float* buffer_out, const unsigned int sx, const unsigned int sy, const unsigned int sx_out, const unsigned int sy_out)
 {
-    int ctrl = padding_2d(buffer_in, buffer_out, sx, sy, sx_out, sy_out);
+    //int ctrl = padding_2d(buffer_in, buffer_out, sx, sy, sx_out, sy_out);
+    int ctrl = mirror_padding_2d(buffer_in, buffer_out, sx, sy, sx_out, sy_out);
     if (ctrl > 0){
         return 1;
     }
 
     unsigned int padding_x = (int(sx_out) - int(sx))/2;
     unsigned int padding_y = (int(sy_out) - int(sy))/2;
+
     unsigned int mirror_pad_x = 4*int(padding_x)/5;
     unsigned int mirror_pad_y = 4*int(padding_y)/5;
 
     unsigned int hann_N_x = 2*mirror_pad_x; 
     unsigned int hann_N_y = 2*mirror_pad_y; 
 
-    unsigned int x, y;
-    for (y = 0 ; y < sy ; y++){
-        for (x = 0 ; x < mirror_pad_x ; x++){
-            buffer_out[sy_out*(padding_x+sx+x)+y+padding_y] = buffer_in[sy*(sx-x-1)+y]*pow(sin(3.14*(x+mirror_pad_x)/hann_N_x), 2);
-            buffer_out[sy_out*(padding_x-x)+y+padding_y] = buffer_in[sy*(x)+y]*pow(sin(3.14*(mirror_pad_x-x)/hann_N_x), 2);
+    
+    for (unsigned int y = 0 ; y < sy_out ; y++)
+    {
+        // vertical left    
+        for (unsigned int x = 0 ; x < padding_x-1 ; x++)
+        {
+            buffer_out[sy_out*x+y] = buffer_out[sy_out*x+y]*pow(sin(3.14*(x)/hann_N_x), 2);
+        }
+        // vertical right
+        for (unsigned int x = 1 ; x < padding_x ; x++)
+        {
+            buffer_out[sy_out*(sx_out-x)+y] = buffer_out[sy_out*(sx_out-x)+y]*pow(sin(3.14*(x-1)/hann_N_x), 2);
         }
     }
-    for (x = 0 ; x < sx ; x++){
-        for (y = 0 ; y < mirror_pad_y ; y++){
-            buffer_out[sy_out*(padding_x+x)+y+padding_y+sy] = buffer_in[sy*(x)+sy-y-1]*pow(sin(3.14*(y+mirror_pad_y)/hann_N_y), 2);
-            buffer_out[sy_out*(padding_x+x)-y+padding_y] = buffer_in[sy*(x)+y]*pow(sin(3.14*(mirror_pad_y-y)/hann_N_y), 2);
+
+    for (unsigned int x = 0 ; x < sx_out ; x++)
+    {
+        // hortizontal top
+        for (unsigned int y = 0 ; y < padding_y-1 ; y++)
+        {
+            buffer_out[sy_out*x+y] = buffer_out[sy_out*x+y]*pow(sin(3.14*(y)/hann_N_y), 2);
+        }
+        // hortizontal bottom
+        for (unsigned int y = 1 ; y < padding_y ; y++)
+        {
+            buffer_out[sy_out*x+sy_out-y] = buffer_out[sy_out*x+sy_out-y]*pow(sin(3.14*(y-1)/hann_N_y), 2);           
         }
     }
     return 0;
@@ -262,5 +338,11 @@ int remove_padding_3d(float* buffer_in, float* buffer_out, const unsigned int sx
 
     return 0;
 }
+
+int remove_padding_4d(float* buffer_in, float* buffer_out, const unsigned int sx, const unsigned int sy, const unsigned int sz, const unsigned int st, const unsigned int sx_out, const unsigned int sy_out, const unsigned int sz_out, const unsigned int st_out)
+{
+    return 0;
+}
+
 
 }

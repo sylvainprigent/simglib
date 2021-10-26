@@ -52,7 +52,8 @@ float* SImg::ifft2D(fftwf_complex* inArray, unsigned int sizeX, unsigned int siz
 
 fftwf_complex* SImg::fft3D(float* inArray, unsigned int sizeX, unsigned int sizeY, unsigned int sizeZ)
 {
-    fftwf_complex* out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(sizeX*sizeY*sizeZ));
+    int nfft = sizeX * sizeY * (sizeZ / 2 + 1);
+    fftwf_complex* out = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * unsigned(nfft));
     fftwf_plan P = fftwf_plan_dft_r2c_3d(sizeX, sizeY, sizeZ, inArray, out, FFTW_ESTIMATE);
 
     fftwf_execute(P);

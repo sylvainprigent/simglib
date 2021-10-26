@@ -44,9 +44,6 @@ void gradient2d(float* image, unsigned int sx, unsigned int sy, unsigned int sz,
 
 void gradient3d(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* bufferGx, float* bufferGy, float* bufferGz){
 
-    bufferGx = new float[sx*sy*sz*st*sc];
-    bufferGy = new float[sx*sy*sz*st*sc];
-    bufferGz = new float[sx*sy*sz*st*sc];
     for (unsigned int c = 0 ; c < sc ; c++){
         for (unsigned int t = 0 ; t < st ; t++){
             // gradient x, y, z
@@ -100,7 +97,9 @@ float gradient2dL2(float* image, unsigned int sx, unsigned int sy, unsigned int 
 
 float gradient3dL2(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc)
 {
-    float* bufferGx; float* bufferGy; float* bufferGz;
+    float* bufferGx = new float[sx*sy*sz*st*sc];
+    float* bufferGy = new float[sx*sy*sz*st*sc];
+    float* bufferGz = new float[sx*sy*sz*st*sc];
     gradient3d(image, sx, sy, sz, st, sc, bufferGx, bufferGy, bufferGz);
     unsigned long bs = sx*sy*sz*st*sc;
     float normL2 = 0.0;
@@ -122,41 +121,57 @@ float gradient2dL1(float* image,  unsigned int sx, unsigned int sy, unsigned int
         val = fabs(bufferGx[i]) + fabs(bufferGy[i]);
         normL1 +=val;
     }
+    delete[] bufferGx;
+    delete[] bufferGy;
     return normL1;
 }
 
 float gradient3dL1(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc)
 {
-    float* bufferGx; float* bufferGy; float* bufferGz;
+    float* bufferGx = new float[sx*sy*sz*st*sc];
+    float* bufferGy = new float[sx*sy*sz*st*sc];
+    float* bufferGz = new float[sx*sy*sz*st*sc];
     gradient3d(image, sx, sy, sz, st, sc, bufferGx, bufferGy, bufferGz);
     unsigned long bs = sx*sy*sz*st*sc;
     float normL1 = 0.0;
     for (unsigned long i = 0 ; i < bs ; i++){
         normL1 += fabs(bufferGx[i]) + fabs(bufferGy[i]) + fabs(bufferGz[i]);
     }
+    delete[] bufferGx;
+    delete[] bufferGy;
+    delete[] bufferGz;
     return normL1;
 }
 
 void gradient2dMagnitude(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* magnitude)
 {
-    float* bufferGx; float* bufferGy;
+    float* bufferGx = new float[sx*sy*sz*st*sc];
+    float* bufferGy = new float[sx*sy*sz*st*sc];
     gradient2d( image, sx, sy, sz, st, sc, bufferGx, bufferGy);
     unsigned long bs = sx*sy*sz*st*sc;
     magnitude = new float[bs];
     for (unsigned long i = 0 ; i < bs ; i++){
         magnitude[i]  = sqrt(bufferGx[i]*bufferGx[i] + bufferGy[i]*bufferGy[i]);
     }
+    delete[] bufferGx;
+    delete[] bufferGy;    
+
 }
 
 void gradient3dMagnitude(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* magnitude)
 {
-    float* bufferGx; float* bufferGy; float* bufferGz;
+    float* bufferGx = new float[sx*sy*sz*st*sc];
+    float* bufferGy = new float[sx*sy*sz*st*sc];
+    float* bufferGz = new float[sx*sy*sz*st*sc];
     gradient3d(image, sx, sy, sz, st, sc, bufferGx, bufferGy, bufferGz);
     unsigned long bs = sx*sy*sz*st*sc;
-    magnitude = new float[bs];
+    //magnitude = new float[bs];
     for (unsigned long i = 0 ; i < bs ; i++){
         magnitude[i]  = sqrt(bufferGx[i]*bufferGx[i] + bufferGy[i]*bufferGy[i] + bufferGz[i]*bufferGz[i]);
     }
+    delete[] bufferGx;
+    delete[] bufferGy;
+    delete[] bufferGz;
 }
 
 }

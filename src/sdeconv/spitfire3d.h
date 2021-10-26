@@ -61,4 +61,16 @@ namespace SImg
     /// \param[in] observable Pointer to the observable object for verbose
     void spitfire3d_deconv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float &delta, const unsigned int &niter, const std::string &method, bool verbose, SObservable *observable);
 
+    /// \brief Calculate the HV energy of an image in the 3D case
+    /// \param[in] blurry_image Buffer of the input blurry image
+    /// \param[in] sx Number of rows in the blurry image
+    /// \param[in] sy Number of columns in the blurry image
+    /// \param[in] sz Number of plan in the blurry image
+    /// \param[in] psf Buffer of the PSF image. Must be same size as blurry_image
+    /// \param[out] deconv_image Buffer of the output deblurred image
+    /// \param[in] regularization regularization parameter
+    /// \param[in] weighting Sparsity weighting in [0,1]. 0 sparse, 1 no sparse
+    /// \param[in] delta Resolution delta betwe XY and Z
+    float energy_3d_hv(float *blurry_image, unsigned int sx, unsigned int sy, unsigned int sz, float *psf, float *deconv_image, const float &regularization, const float &weighting, const float& delta);
+    
 }

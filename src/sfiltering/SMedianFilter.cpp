@@ -19,7 +19,7 @@ namespace SImg{
 
 void medianFilter(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, int rx, int ry, int rz, int rt, float* output)
 {
-    output = new float[sx*sy*sz*st*sc];
+    //output = new float[sx*sy*sz*st*sc];
     float filterSize = (2*rx+1)*(2*ry+1)*(2*rz+1)*(2*rt+1);
     std::vector<float> neighbors;
     neighbors.resize(unsigned(filterSize));

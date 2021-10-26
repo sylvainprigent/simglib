@@ -31,3 +31,28 @@ float* SImg::convolution_2d(float* image1, float* image2, unsigned int sx, unsig
     SImg::ifft2D(outputFFT, out, sx, sy);
     return out;
 }
+
+float* SImg::convolution_3d(float* image1, float* image2, unsigned int sx, unsigned int sy, unsigned int sz)
+{
+    std::cout << "convolution_3d start" << std::endl;
+    int nfft = sx * sy * (sz / 2 + 1);
+    std::cout << "convolution_3d calculate fft3D" << std::endl;
+    fftwf_complex* image1FFT = SImg::fft3D(image1, sx, sy, sz);
+    fftwf_complex* image2FFT = SImg::fft3D(image2, sx, sy, sz);
+    fftwf_complex* outputFFT = (fftwf_complex*) fftwf_malloc(sizeof(fftwf_complex) * nfft);
+    float scale = 1.0 / float(nfft);
+    std::cout << "convolution_3d loop" << std::endl;
+    for (unsigned int i = 0 ; i < nfft ; i++){
+        outputFFT[i][0] = (image1FFT[i][0] * image2FFT[i][0] - image1FFT[i][1] * image2FFT[i][1])*scale;
+        outputFFT[i][1] = (image1FFT[i][1] * image2FFT[i][0] + image1FFT[i][0] * image2FFT[i][1])*scale;
+    }
+    std::cout << "convolution_3d calculate ifft" << std::endl;
+
+    float* out = new float[sx*sy*sz];
+    SImg::ifft3D(outputFFT, out, sx, sy, sz);
+
+    fftwf_free(image1FFT);
+    fftwf_free(image2FFT);
+    fftwf_free(outputFFT);
+    return out;
+}

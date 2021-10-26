@@ -14,4 +14,5 @@
 namespace SImg
 {
     float* convolution_2d(float* image1, float* image2, unsigned int sx, unsigned int sy);
+    float* convolution_3d(float* image1, float* image2, unsigned int sx, unsigned int sy, unsigned int sz);
 }

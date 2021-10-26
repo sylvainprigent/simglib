@@ -98,7 +98,7 @@ unsigned int STable::getWidth(){
 }
 
 void STable::setHeader(unsigned int col, std::string value){
-    if (col < m_row){
+    if (col < m_col){
         m_headers[col] = value;
     }
     else{

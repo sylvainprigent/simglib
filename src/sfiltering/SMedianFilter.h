@@ -7,8 +7,7 @@
 #pragma once
 
 #include <string>
-#include "sfilteringExport.h"
 
-namespace Simg{
+namespace SImg{
     void medianFilter(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, int rx, int ry, int rz, int rt, float* output);
 }
