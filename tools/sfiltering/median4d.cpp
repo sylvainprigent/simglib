@@ -70,9 +70,9 @@ int main(int argc, char *argv[])
             unsigned int sx_pad = sx + 2*rx;
             unsigned int sy_pad = sy + 2*ry;
             unsigned int sz_pad = sz + 2*rz;
-            unsigned int st_pad = st + 2*rt;
+            unsigned int st_pad = st;
             float* noisy_padded_image = new float[sx_pad*sy_pad*sz_pad*st_pad];
-            SImg::mirror_padding_4d(noisy_image, noisy_padded_image, sx, sy, sz, st, sx_pad, sy_pad, sz_pad, st_pad);
+            SImg::mirror_padding_4d(noisy_image, noisy_padded_image, sx, sy, sz, st, sx_pad, sy_pad, sz_pad);
 
             // median filtering
             float *output_pad = new float[sx_pad*sy_pad*sz_pad*st_pad];
@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 
             // remove padding
             float* output = new float[sx*sy*sz*st];
-            SImg::remove_padding_4d(output_pad, output, sx_pad, sy_pad, sz_pad, st_pad, sx, sy, sz, st);
+            SImg::remove_padding_4d(output_pad, output, sx_pad, sy_pad, sz_pad, st_pad, sx, sy, sz);
             delete[] output_pad;
 
             SImg::toc();
