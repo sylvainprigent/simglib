@@ -72,6 +72,9 @@ int main(int argc, char *argv[])
 
         if (padding)
         {
+            if (verbose){
+                observer->message("spitfire3d: use padding");
+            }
             // padding 
             unsigned int sx_pad = sx + 12;
             unsigned int sy_pad = sy + 12;
