@@ -34,4 +34,6 @@ void normL2(float* image, unsigned int sx, unsigned int sy, unsigned int sz, uns
 void normRC(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* output);
 void normValue(float* image, unsigned int sx, unsigned int sy, unsigned int sz, unsigned int st, unsigned int sc, float* output, float normValue);
 
+void normalize_back_intensities(float* image, int bs, float imin, float imax);
+
 }

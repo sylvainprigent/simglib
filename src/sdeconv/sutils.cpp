@@ -14,17 +14,57 @@ namespace SImg{
 
 void normalize_intensities(float* buffer, unsigned int buffer_length, std::string method)
 {
-    float max_val = buffer[0];
+    if (method == "max")
+    {
+        float max_val = buffer[0];
+        for (int p = 1 ; p < buffer_length ; p++){
+            if (buffer[p] > max_val){
+                max_val = buffer[p]; 
+            }
+        }
+        #pragma omp parallel for
+        for (int p = 0 ; p < buffer_length ; p++){
+            buffer[p] /= max_val;
+        }
+    }
+    else if (method == "sum")
+    {
+        float sum_val = buffer[0];
+        for (int p = 1 ; p < buffer_length ; p++){
+            sum_val += buffer[p];
+        }
+        #pragma omp parallel for
+        for (int p = 0 ; p < buffer_length ; p++){
+            buffer[p] /= sum_val;
+        }
+    }
+    else if (method == "L2")
+    {
+        float norm = 0.0;
+        for (unsigned int i = 0 ; i < buffer_length ; i++){
+            norm += buffer[i]*buffer[i];
+        }
+        norm = sqrt(norm);
+
+        #pragma omp parallel for
+        for (unsigned int i = 0 ; i < buffer_length ; i++){
+            buffer[i] = buffer[i] / norm;
+        }
+    }
+}
+
+void remove_min(float* buffer, int buffer_length)
+{
+    float min_val = buffer[0];
     for (int p = 1 ; p < buffer_length ; p++){
-        if (buffer[p] > max_val){
-            max_val = buffer[p]; 
+        if (buffer[p] < min_val){
+            min_val = buffer[p]; 
         }
     }
     #pragma omp parallel for
-    for (int p = 1 ; p < buffer_length ; p++){
-        buffer[p] /= max_val;
+    for (int p = 0 ; p < buffer_length ; p++){
+        buffer[p] -= min_val;
     }
-
 }
 
 void laplacian_2d(float* buffer_in, float* buffer_out, unsigned int sx, unsigned int sy, int connectivity)

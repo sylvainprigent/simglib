@@ -12,7 +12,7 @@
 
 using namespace SImg;
 
-void normalize_back_intensities(float* deconv_image, int bs, float imin, float imax)
+void normalize_back_intensities_(float* deconv_image, int bs, float imin, float imax)
 {
     // normalize back intensities
     float omin = deconv_image[0];
@@ -163,7 +163,7 @@ int main(int argc, char *argv[])
             std::string outputImageFile = outputImageDir + "/lambda_" + std::to_string(pow_lambda) + ".tif";
             
             float energy_before = energy_hv(blurry_image_norm, sx, sy, psf, deconv_image, lambdas_prim, weighting);
-            normalize_back_intensities(deconv_image, bs, imin, imax); 
+            normalize_back_intensities_(deconv_image, bs, imin, imax); 
             float energy = energy_hv(blurry_image_norm, sx, sy, psf, deconv_image, lambdas_prim, weighting);
 
             float tv = gradient2dL1(deconv_image, sx, sy, 1, 1, 1);

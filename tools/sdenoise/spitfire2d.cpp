@@ -42,6 +42,7 @@ int main(int argc, char *argv[])
         }
 
         if (verbose){
+            observer->message("spitfire2d: denoise" + inputImageFile);
             observer->message("spitfire2d: input image: " + inputImageFile);
             observer->message("spitfire2d: output image: " + outputImageFile);
             observer->message("spitfire2d: method: " + method);
@@ -68,6 +69,9 @@ int main(int argc, char *argv[])
 
         if (padding)
         {
+            if (verbose){
+                observer->message("spitfire2d: use padding");
+            }
             // padding 
             unsigned int sx_pad = sx + 12;
             unsigned int sy_pad = sy + 12;
@@ -93,11 +97,7 @@ int main(int argc, char *argv[])
             }
 
             // normalize back intensities
-            #pragma omp parallel for
-            for (unsigned int i = 0 ; i < sx_pad*sy_pad ; ++i)
-            {
-                denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
-            }
+            SImg::normalize_back_intensities(denoised_image, sx_pad*sy_pad, imin, imax);
 
             // remove padding
             float* output = new float[sx_pad*sy_pad];
@@ -133,11 +133,7 @@ int main(int argc, char *argv[])
 
             // normalize back intensities
             delete[] noisy_image_norm;
-            #pragma omp parallel for
-            for (unsigned int i = 0 ; i < sx*sy ; ++i)
-            {
-                denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
-            }
+            SImg::normalize_back_intensities(denoised_image, sx*sy, imin, imax);
 
             SImg::toc();
             delete STimerAccess::instance();

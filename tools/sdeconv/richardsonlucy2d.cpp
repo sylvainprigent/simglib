@@ -4,6 +4,7 @@
 #include <simageio>
 #include <spadding>
 #include <sdeconv>
+#include <smanipulate>
 
 int main(int argc, char *argv[])
 {
@@ -17,7 +18,9 @@ int main(int argc, char *argv[])
         cmdParser.addParameterFloat("-sigma", "Sigma of the PSF", 2);
         cmdParser.addParameterInt("-niter", "Number of iterations", 40);
         cmdParser.addParameterFloat("-lambda", "Regularization parameter", 0);
-        cmdParser.setMan("Deconvolve an image using the Richardson Lucy algorithm");
+        cmdParser.addParameterBoolean("-padding", "True to use mirror padding for border", true);
+
+        cmdParser.setMan("Deconvolve a 2D image using the Richardson Lucy algorithm");
         cmdParser.parse(4);
 
         std::string inputImageFile = cmdParser.getDataURI("-i");
@@ -26,82 +29,107 @@ int main(int argc, char *argv[])
         const float sigma = cmdParser.getParameterFloat("-sigma");
         const int niter = cmdParser.getParameterFloat("-niter");
         const float lambda = cmdParser.getParameterFloat("-lambda");
+        const bool padding = cmdParser.getParameterBool("-padding");
 
         if (inputImageFile == ""){
-            observer->message("RichardsonLucy: Input image path is empty");
+            observer->message("RichardsonLucy2D: Input image path is empty");
             return 1;
         }
 
         bool verbose = true;
         if (verbose){
-            observer->message("RichardsonLucy: input image: " + inputImageFile);
-            observer->message("RichardsonLucy: output image: " + outputImageFile);
-            observer->message("RichardsonLucy: sigma: " + std::to_string(sigma));
-            observer->message("RichardsonLucy: niter: " + std::to_string(niter));
+            observer->message("RichardsonLucy2D: input image: " + inputImageFile);
+            observer->message("RichardsonLucy2D: output image: " + outputImageFile);
+            observer->message("RichardsonLucy2D: sigma: " + std::to_string(sigma));
+            observer->message("RichardsonLucy2D: niter: " + std::to_string(niter));
         }
 
-        // Run process
+        // Load input image
         SImageFloat* inputImage = dynamic_cast<SImageFloat*>(SImageReader::read(inputImageFile, 32));
-
-        // 1- create a padding around the input image
+        float imin = inputImage->getMin();
+        float imax = inputImage->getMax();
         float* buffer_in = inputImage->getBuffer();
         unsigned int sx = inputImage->getSizeX();
         unsigned int sy = inputImage->getSizeY();
-        unsigned int sx_out = sx+2*24;
-        unsigned int sy_out = sy+2*24;
-        float* buffer_in_padding = new float[sx_out*sy_out];
 
-        int ctrl = SImg::hanning_padding_2d(buffer_in, buffer_in_padding, sx, sy, sx_out, sy_out);
-        if (ctrl > 0){
-            observer->message("RichardsonLucy: padding dimensions missmatch", SObserver::MessageTypeError);
-            return 1;
-        }
-        delete inputImage;
-
-        // 2- create the psf
-        float* buffer_psf = new float[sx_out*sy_out];
-        SImg::gaussian_psf_2d(buffer_psf, sx_out, sy_out, sigma, sigma);
-
-        // 3- normalize inputs
-        float max_in = 0;
-        float sum_psf = 0;
-        float max_psf = 0;
-        for (int i = 0 ; i < sx_out*sy_out ; i++){
-            if (buffer_psf[i] > max_psf){
-                max_psf = buffer_psf[i];   
+        if (padding)
+        {
+            if (verbose){
+                observer->message("RichardsonLucy2D: use padding");
             }
-            sum_psf += buffer_psf[i]; 
-            if (buffer_in_padding[i] > max_in){
-                max_in = buffer_in_padding[i];   
+            unsigned int sx_out = sx+2*24;
+            unsigned int sy_out = sy+2*24;
+            float* buffer_in_padding = new float[sx_out*sy_out];
+
+            int ctrl = SImg::hanning_padding_2d(buffer_in, buffer_in_padding, sx, sy, sx_out, sy_out);
+            if (ctrl > 0){
+                observer->message("RichardsonLucy2D: padding dimensions missmatch", SObserver::MessageTypeError);
+                return 1;
             }
-        }
-        for (int i = 0 ; i < sx_out*sy_out ; i++){
-            buffer_psf[i] /= sum_psf;     
-            buffer_in_padding[i] /= max_in;   
-        }
+            delete inputImage;
 
-        // 4- compute the deconvolution
-        float* buffer_out = new float[sx_out*sy_out];
-        SImg::tic();
-        if (lambda > 1e-9){
-            SImg::richardsonlucy_tv_2d(buffer_in_padding, buffer_psf, buffer_out, sx_out, sy_out, niter, lambda);
+            // Create the psf
+            float* buffer_psf = new float[sx_out*sy_out];
+            SImg::gaussian_psf_2d(buffer_psf, sx_out, sy_out, sigma, sigma);
+
+            // Normalize inputs
+            SImg::normalize_intensities(buffer_psf, sx_out*sy_out, "sum");
+            SImg::normalize_intensities(buffer_in_padding, sx_out*sy_out, "L2");
+
+            // Compute the deconvolution
+            float* buffer_out = new float[sx_out*sy_out];
+            SImg::tic();
+            if (lambda > 1e-9){
+                SImg::richardsonlucy_tv_2d(buffer_in_padding, buffer_psf, buffer_out, sx_out, sy_out, niter, lambda);
+            }
+            else{
+                SImg::richardsonlucy_2d(buffer_in_padding, buffer_psf, buffer_out, sx_out, sy_out, niter);
+            }
+            SImg::toc();
+
+            float* buffer_out_crop = new float[sx*sy];
+            SImg::remove_padding_2d(buffer_out, buffer_out_crop, sx_out, sy_out, sx, sy);
+            delete[] buffer_out;
+            SImg::normalize_back_intensities(buffer_out_crop, sx*sy, imin, imax);
+
+            // save outputs
+            SImageFloat* outputImage = new SImageFloat(buffer_out_crop, sx, sy);
+            SImageReader::write(outputImage, outputImageFile);
+
+            delete[] buffer_psf;
+            delete[] buffer_in_padding;
+            delete outputImage;
         }
-        else{
-            SImg::richardsonlucy_2d(buffer_in_padding, buffer_psf, buffer_out, sx_out, sy_out, niter);
+        else
+        {
+            // Create the psf
+            float* buffer_psf = new float[sx*sy];
+            SImg::gaussian_psf_2d(buffer_psf, sx, sy, sigma, sigma);
+
+            // Normalize inputs
+            SImg::normalize_intensities(buffer_psf, sx*sy, "sum");
+            SImg::normalize_intensities(buffer_in, sx*sy, "L2");
+
+            // Compute the deconvolution
+            float* buffer_out = new float[sx*sy];
+            SImg::tic();
+            if (lambda > 1e-9){
+                SImg::richardsonlucy_tv_2d(buffer_in, buffer_psf, buffer_out, sx, sy, niter, lambda);
+            }
+            else{
+                SImg::richardsonlucy_2d(buffer_in, buffer_psf, buffer_out, sx, sy, niter);
+            }
+            SImg::normalize_back_intensities(buffer_out, sx*sy, imin, imax);
+            SImg::toc();
+
+            // save outputs
+            SImageFloat* outputImage = new SImageFloat(buffer_out, sx, sy);
+            SImageReader::write(outputImage, outputImageFile);
+
+            delete[] buffer_psf;
+            delete inputImage;
+            delete outputImage;
         }
-        SImg::toc();
-
-        float* buffer_out_crop = new float[sx*sy];
-        SImg::remove_padding_2d(buffer_out, buffer_out_crop, sx_out, sy_out, sx, sy);
-        delete[] buffer_out;
-
-        // save outputs
-        SImageFloat* outputImage = new SImageFloat(buffer_out_crop, sx, sy);
-        SImageReader::write(outputImage, outputImageFile);
-
-        delete[] buffer_psf;
-        delete[] buffer_in_padding;
-        delete outputImage;
     }
     catch (SException &e)
     {

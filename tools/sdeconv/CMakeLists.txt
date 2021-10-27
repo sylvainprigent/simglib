@@ -66,10 +66,21 @@ INSTALL(TARGETS simgrichardsonlucy2d
   ARCHIVE DESTINATION lib
 )
 
+SET(NAME simgrichardsonlucy2dslice)
+SET(FILE ${SRC_FILES} richardsonlucy2dslice.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
+
+INSTALL(TARGETS simgrichardsonlucy2dslice
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
 SET(NAME simgrichardsonlucy3d)
 SET(FILE ${SRC_FILES} richardsonlucy3d.cpp)
 add_executable(${NAME} ${FILE})
-target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sfft smanipulate simage simageio scli)
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sfft smanipulate simage simageio scli spadding)
 
 INSTALL(TARGETS simgrichardsonlucy3d
   RUNTIME DESTINATION bin
@@ -88,10 +99,21 @@ INSTALL(TARGETS simgwiener2d
   ARCHIVE DESTINATION lib
 )
 
+SET(NAME simgwiener2dslice)
+SET(FILE ${SRC_FILES} wiener2dslice.cpp)
+add_executable(${NAME} ${FILE})
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
+
+INSTALL(TARGETS simgwiener2dslice
+  RUNTIME DESTINATION bin
+  LIBRARY DESTINATION lib
+  ARCHIVE DESTINATION lib
+)
+
 SET(NAME simgwiener3d)
 SET(FILE ${SRC_FILES} wiener3d.cpp)
 add_executable(${NAME} ${FILE})
-target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sfft smanipulate simage simageio scli)
+target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sfft smanipulate simage simageio scli spadding)
 
 INSTALL(TARGETS simgwiener3d
   RUNTIME DESTINATION bin
@@ -132,12 +154,12 @@ INSTALL(TARGETS simgspitfiredeconv3d
   ARCHIVE DESTINATION lib
 )
 
-SET(NAME simgspitfiredeconv2dplan)
-SET(FILE ${SRC_FILES} spitfire2dplan.cpp)
+SET(NAME simgspitfiredeconv2dslice)
+SET(FILE ${SRC_FILES} spitfire2dslice.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
 
-INSTALL(TARGETS simgspitfiredeconv2dplan
+INSTALL(TARGETS simgspitfiredeconv2dslice
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
@@ -148,20 +170,19 @@ SET(FILE ${SRC_FILES} spitfire2d_estimate.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
 
-SET(NAME simgspitfiredeconv2destimatesqrt)
-SET(FILE ${SRC_FILES} spitfire2d_estimate_sqrt.cpp)
-add_executable(${NAME} ${FILE})
-target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
+#SET(NAME simgspitfiredeconv2destimatesqrt)
+#SET(FILE ${SRC_FILES} spitfire2d_estimate_sqrt.cpp)
+#add_executable(${NAME} ${FILE})
+#target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
 
 
-SET(NAME simgspitfiredeconv3destimate)
-SET(FILE ${SRC_FILES} spitfire3d_estimate.cpp)
-add_executable(${NAME} ${FILE})
-target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
+#SET(NAME simgspitfiredeconv3destimate)
+#SET(FILE ${SRC_FILES} spitfire3d_estimate.cpp)
+#add_executable(${NAME} ${FILE})
+#target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
 
 
-SET(NAME simgspitfiredeconv2airbus)
-SET(FILE ${SRC_FILES} spitfire2d_airbus.cpp)
-add_executable(${NAME} ${FILE})
-target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sdenoise spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)
-
+#SET(NAME simgspitfiredeconv2airbus)
+#SET(FILE ${SRC_FILES} spitfire2d_airbus.cpp)
+#add_executable(${NAME} ${FILE})
+#target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv sdenoise spadding sfft smanipulate sfiltering simage simageio scli sdata sdataio)

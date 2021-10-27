@@ -27,7 +27,7 @@ int main(int argc, char *argv[])
         cmdParser.addParameterBoolean("-verbose", "Print iterations to console", true);
         cmdParser.setMan("Denoise a 3D image with the SPITFIR(e) algotithm");
         cmdParser.parse(2);
-
+ 
         std::string inputImageFile = cmdParser.getDataURI("-i");
         std::string outputImageFile = cmdParser.getDataURI("-o");
 
@@ -101,17 +101,13 @@ int main(int argc, char *argv[])
 
             // normalize back intensities
             delete[] noisy_image_norm;
-            #pragma omp parallel for
-            for (unsigned int i = 0 ; i < sx_pad*sy_pad*sz_pad ; ++i)
-            {
-                denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
-            }
 
             // remove padding
-            float* output = new float[sx_pad*sy_pad*sz_pad];
+            float* output = new float[sx*sy*sz];
             SImg::remove_padding_3d(denoised_image, output, sx_pad, sy_pad, sz_pad, sx, sy, sz);
             delete[] denoised_image; 
 
+            SImg::normalize_back_intensities(output, sx*sy*sz, imin, imax);    
             SImg::toc();
 
             SImageReader::write(new SImageFloat(output, sx, sy, sz), outputImageFile);
@@ -139,11 +135,7 @@ int main(int argc, char *argv[])
             }
 
             // normalize back intensities
-            #pragma omp parallel for
-            for (unsigned int i = 0 ; i < sx*sy*sz ; ++i)
-            {
-                denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
-            }
+            SImg::normalize_back_intensities(denoised_image, sx*sy*sz, imin, imax);
             SImg::toc();
 
             SImageReader::write(new SImageFloat(denoised_image, sx, sy, sz), outputImageFile);

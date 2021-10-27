@@ -12,6 +12,8 @@
 namespace SImg{
 
 void normalize_intensities(float* buffer, unsigned int buffer_length, std::string method = "max");
+void remove_min(float* buffer, int buffer_length);
+
 void laplacian_2d(float* buffer_in, float* buffer_out, unsigned int sx, unsigned int sy, int connectivity);
 
 }

@@ -142,4 +142,29 @@ void normValue(float* image, unsigned int sx, unsigned int sy, unsigned int sz, 
     }
 }
 
+void normalize_back_intensities(float* image, int bs, float imin, float imax)
+{
+    float omin = image[0];
+    float omax = image[0];
+    for (unsigned int i = 1; i < bs; ++i)
+    {
+        float val = image[i];
+        if (val > omax)
+        {
+            omax = val;
+        }
+        if (val < omin)
+        {
+            omin = val;
+        }
+    }
+
+#pragma omp parallel for
+    for (unsigned int i = 0; i < bs; ++i)
+    {
+        image[i] = (image[i] - omin)/(omax-omin);
+        image[i] = image[i] * (imax - imin) + imin;
+    }
+}
+
 }

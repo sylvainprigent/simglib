@@ -3,6 +3,7 @@
 #include <simageio>
 #include <smanipulate>
 #include <sdeconv>
+#include <spadding>
 #include "math.h"
 
 int main(int argc, char *argv[])
@@ -20,6 +21,7 @@ int main(int argc, char *argv[])
         cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 11);
         cmdParser.addParameterFloat("-weighting", "Weighting parameter", 0.6);
         cmdParser.addParameterInt("-niter", "Nb iterations", 200);
+        cmdParser.addParameterBoolean("-padding", "True to use mirror padding for border", true);
 
         cmdParser.addParameterBoolean("-verbose", "Print iterations to console", true);
         cmdParser.setMan("Deconv a 2D image with the SPITFIR(e) algotithm");
@@ -33,6 +35,7 @@ int main(int argc, char *argv[])
         const float regularization = cmdParser.getParameterFloat("-regularization");
         const float weighting = cmdParser.getParameterFloat("-weighting");
         const int niter = cmdParser.getParameterInt("-niter");
+        const bool padding = cmdParser.getParameterBool("-padding");
         const bool verbose = cmdParser.getParameterBool("-verbose");
 
         if (inputImageFile == ""){
@@ -59,30 +62,77 @@ int main(int argc, char *argv[])
             throw SException("spitfire2d can process only 2D gray scale images");
         }
 
-        // create the PSF
-        float* psf = new float[sx*sy];
-        SImg::gaussian_psf_2d(psf, sx, sy, sigma, sigma);
-        float psf_sum = 0.0;
-        for (unsigned int i = 0 ; i < sx*sy ; ++i){
-            psf_sum += psf[i]; 
+        if (padding)
+        {
+            if (verbose){
+                observer->message("spitfire2d: use padding");
+            }
+            // padding 
+            unsigned int sx_pad = sx + 2*24;
+            unsigned int sy_pad = sy + 2*24;
+            float* blurry_padded_image = new float[sx_pad*sy_pad];
+            SImg::hanning_padding_2d(blurry_image, blurry_padded_image, sx, sy, sx_pad, sy_pad); 
+            delete inputImage; 
+
+            // create the PSF
+            float* psf = new float[sx_pad*sy_pad];
+            SImg::gaussian_psf_2d(psf, sx_pad, sy_pad, sigma, sigma);
+            float psf_sum = 0.0;
+            for (unsigned int i = 0 ; i < sx_pad*sy_pad ; ++i){
+                psf_sum += psf[i]; 
+            }
+            for (unsigned int i = 0 ; i < sx_pad*sy_pad ; ++i){
+                psf[i] /= psf_sum;
+            }
+
+            // run deconvolution
+            SObservable * observable = new SObservable();
+            observable->addObserver(observer);
+            SImg::tic();
+            float *deconv_image = (float *)malloc(sizeof(float) * (sx_pad*sy_pad));
+            SImg::spitfire2d_deconv(blurry_padded_image, sx_pad, sy_pad, psf, deconv_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
+            delete[] psf;
+            delete[] blurry_padded_image;
+
+            // remove padding
+            float* output = new float[sx_pad*sy_pad];
+            SImg::remove_padding_2d(deconv_image, output, sx_pad, sy_pad, sx, sy);
+            delete[] deconv_image;
+
+            SImg::toc();
+            SImageReader::write(new SImageFloat(output, sx, sy), outputImageFile);
+
+            delete[] output;
+            delete observable;
         }
-        for (unsigned int i = 0 ; i < sx*sy ; ++i){
-            psf[i] /= psf_sum;
+        else
+        {
+            // create the PSF
+            float* psf = new float[sx*sy];
+            SImg::gaussian_psf_2d(psf, sx, sy, sigma, sigma);
+            float psf_sum = 0.0;
+            for (unsigned int i = 0 ; i < sx*sy ; ++i){
+                psf_sum += psf[i]; 
+            }
+            for (unsigned int i = 0 ; i < sx*sy ; ++i){
+                psf[i] /= psf_sum;
+            }
+ 
+            // run deconvolution
+            SObservable * observable = new SObservable();
+            observable->addObserver(observer);
+            SImg::tic();
+            float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy));
+            SImg::spitfire2d_deconv(blurry_image, sx, sy, psf, deconv_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
+            SImg::toc();
+
+            SImageReader::write(new SImageFloat(deconv_image, sx, sy), outputImageFile);
+
+            delete[] blurry_image;
+            delete[] deconv_image;
+            delete observable;
         }
-
-        // run deconvolution
-        SObservable * observable = new SObservable();
-        observable->addObserver(observer);
-        SImg::tic();
-        float *deconv_image = (float *)malloc(sizeof(float) * (sx*sy));
-        SImg::spitfire2d_deconv(blurry_image, sx, sy, psf, deconv_image, pow(2, -regularization), weighting, niter, method, verbose, observable);
-        SImg::toc();
-
-        SImageReader::write(new SImageFloat(deconv_image, sx, sy), outputImageFile);
-
-        delete[] blurry_image;
-        delete[] deconv_image;
-        delete observable;
+        
     }
     catch (SException &e)
     {

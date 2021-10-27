@@ -564,7 +564,6 @@ namespace SImg
             throw SException("spitfire2d: method must be SV or HV");
         }
 
-// normalize back intensities
        // normalize back intensities
         float omin = deconv_image[0];
         float omax = deconv_image[0];

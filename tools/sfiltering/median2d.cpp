@@ -18,7 +18,7 @@ int main(int argc, char *argv[])
         cmdParser.addParameterInt("-rx", "Radius of the filter in the x direction ", 2);
         cmdParser.addParameterInt("-ry", "Radius of the filter in the y direction ", 2);
         cmdParser.addParameterBoolean("-padding", "True to use mirror padding for border", true);
-
+ 
         cmdParser.addParameterBoolean("-verbose", "Print progress to console", true);
         cmdParser.setMan("Denoise a 2D image with the median filter");
         cmdParser.parse(2);
