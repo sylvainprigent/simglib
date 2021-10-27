@@ -3,6 +3,7 @@
 #include <simageio>
 #include <smanipulate>
 #include <sdenoise>
+#include <spadding>
 #include "math.h"
 
 int main(int argc, char *argv[])
@@ -19,6 +20,7 @@ int main(int argc, char *argv[])
         cmdParser.addParameterFloat("-regularization", "Regularization parameter as pow(2,-x)", 2);
         cmdParser.addParameterFloat("-weighting", "Weighting parameter", 0.6);
         cmdParser.addParameterInt("-niter", "Nb iterations", 200);
+        cmdParser.addParameterBoolean("-padding", "True to use mirror padding for border", false);
 
         cmdParser.addParameterBoolean("-verbose", "Print iterations to console", true);
         cmdParser.setMan("Denoise a 2D image with the SPITFIR(e) algotithm");
@@ -32,6 +34,7 @@ int main(int argc, char *argv[])
         const float weighting = cmdParser.getParameterFloat("-weighting");
         const int niter = cmdParser.getParameterInt("-niter");
         const bool verbose = cmdParser.getParameterBool("-verbose");
+        const bool padding = cmdParser.getParameterBool("-padding");
 
         if (inputImageFile == ""){
             observer->message("spitfire2d: Input image path is empty");
@@ -63,38 +66,88 @@ int main(int argc, char *argv[])
         observable->addObserver(observer);
         SImg::tic();
 
-        // min max normalize intensities
-        float* noisy_image_norm = new float[sx*sy];
-        SImg::normMinMax(noisy_image, sx, sy, 1, 1, 1, noisy_image_norm);
-        delete inputImage;
-
-        // run denoising
-        float* denoised_image = new float[sx*sy];
-        if (method == "SV"){
-            SImg::spitfire2d_sv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
-        }
-        else if (method == "HV")
+        if (padding)
         {
-            SImg::spitfire2d_hv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
-        }
-        else{
-            throw SException("spitfire2d: method must be SV or HV");
-        }
+            // padding 
+            unsigned int sx_pad = sx + 12;
+            unsigned int sy_pad = sy + 12;
+            float* noisy_padded_image = new float[sx_pad*sy_pad];
+            SImg::mirror_padding_2d(noisy_image, noisy_padded_image, sx, sy, sx_pad, sy_pad);   
 
-        // normalize back intensities
-        #pragma omp parallel for
-        for (unsigned int i = 0 ; i < sx*sy ; ++i)
+            // min max normalize intensities
+            float* noisy_image_norm = new float[sx_pad*sy_pad];
+            SImg::normMinMax(noisy_padded_image, sx_pad, sy_pad, 1, 1, 1, noisy_image_norm);
+            delete inputImage;
+
+            // run denoising
+            float* denoised_image = new float[sx_pad*sy_pad];
+            if (method == "SV"){
+                SImg::spitfire2d_sv(noisy_image_norm, sx_pad, sy_pad, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
+            }
+            else if (method == "HV")
+            {
+                SImg::spitfire2d_hv(noisy_image_norm, sx_pad, sy_pad, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
+            }
+            else{
+                throw SException("spitfire2d: method must be SV or HV");
+            }
+
+            // normalize back intensities
+            #pragma omp parallel for
+            for (unsigned int i = 0 ; i < sx_pad*sy_pad ; ++i)
+            {
+                denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
+            }
+
+            // remove padding
+            float* output = new float[sx_pad*sy_pad];
+            SImg::remove_padding_2d(denoised_image, output, sx_pad, sy_pad, sx, sy);
+            delete[] denoised_image;
+
+            SImg::toc();
+            delete STimerAccess::instance();
+
+            SImageFloat* denImage = new SImageFloat(output, sx, sy);
+            SImageReader::write(denImage, outputImageFile);
+            delete denImage;
+        }
+        else
         {
-            denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
+            // min max normalize intensities
+            float* noisy_image_norm = new float[sx*sy];
+            SImg::normMinMax(noisy_image, sx, sy, 1, 1, 1, noisy_image_norm);
+            delete inputImage;
+
+            // run denoising
+            float* denoised_image = new float[sx*sy];
+            if (method == "SV"){
+                SImg::spitfire2d_sv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
+            }
+            else if (method == "HV")
+            {
+                SImg::spitfire2d_hv(noisy_image_norm, sx, sy, denoised_image, pow(2, -regularization), weighting, niter, verbose, observable);
+            }
+            else{
+                throw SException("spitfire2d: method must be SV or HV");
+            }
+
+            // normalize back intensities
+            delete[] noisy_image_norm;
+            #pragma omp parallel for
+            for (unsigned int i = 0 ; i < sx*sy ; ++i)
+            {
+                denoised_image[i] = denoised_image[i]*(imax-imin) + imin;
+            }
+
+            SImg::toc();
+            delete STimerAccess::instance();
+
+            SImageFloat* denImage = new SImageFloat(denoised_image, sx, sy);
+            SImageReader::write(denImage, outputImageFile);
+            delete denImage;
         }
-        SImg::toc();
-        delete STimerAccess::instance();
 
-        SImageFloat* denImage = new SImageFloat(denoised_image, sx, sy);
-        SImageReader::write(denImage, outputImageFile);
-
-        delete[] noisy_image_norm;
-        delete denImage;
+        
         delete observable;
     }
     catch (SException &e)
