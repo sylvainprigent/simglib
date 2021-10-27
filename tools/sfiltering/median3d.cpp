@@ -62,6 +62,10 @@ int main(int argc, char *argv[])
         SImg::tic();
 
         if (padding){
+            if (verbose){
+                observer->message("median3d: use padding");
+            }
+
             // padding 
             unsigned int sx_pad = sx + 2*rx;
             unsigned int sy_pad = sy + 2*ry;

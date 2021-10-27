@@ -134,8 +134,7 @@ int main(int argc, char *argv[])
 
             SImageReader::write(new SImageFloat(output, sx, sy, sz, st), outputImageFile);
 
-            delete[] noisy_image_norm;
-            delete[] denoised_image;       
+            delete[] noisy_image_norm;    
         }
         else
         {
