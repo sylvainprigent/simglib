@@ -49,7 +49,7 @@ SET(FILE ${SRC_FILES} sgibsonlannipsf.cpp)
 add_executable(${NAME} ${FILE})
 target_link_libraries(${NAME} ${SL_LIBRARIES} sdeconv spadding sfft smanipulate simage simageio scli)
 
-INSTALL(TARGETS simggaussian2dpsf
+INSTALL(TARGETS simggibsonlannipsf
   RUNTIME DESTINATION bin
   LIBRARY DESTINATION lib
   ARCHIVE DESTINATION lib
