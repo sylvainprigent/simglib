@@ -5,6 +5,7 @@
 /// \date 2020
 
 #include "sutils.h"
+#include "math.h"
 
 #ifdef SL_USE_OPENMP
 #include "omp.h"
