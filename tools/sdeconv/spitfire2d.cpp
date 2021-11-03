@@ -15,6 +15,7 @@ int main(int argc, char *argv[])
         SCliParser cmdParser(argc, argv);
         cmdParser.addInputData("-i", "Input image file");
         cmdParser.addOutputData("-o", "Output image file");
+        cmdParser.addOutputData("-psf", "PSF image");
 
         cmdParser.addParameterFloat("-sigma", "PSF sigma (gaussian)", 1.5);
         cmdParser.addParameterSelect("-method", "Deconvolution method 'SV' or 'HV", "HV");
@@ -29,6 +30,7 @@ int main(int argc, char *argv[])
 
         std::string inputImageFile = cmdParser.getDataURI("-i");
         std::string outputImageFile = cmdParser.getDataURI("-o");
+        std::string psfImageFile = cmdParser.getDataURI("-psf");
 
         const float sigma = cmdParser.getParameterFloat("-sigma");
         const std::string method = cmdParser.getParameterString("-method");
@@ -57,6 +59,10 @@ int main(int argc, char *argv[])
         float* blurry_image = inputImage->getBuffer();
         unsigned int sx = inputImage->getSizeX();
         unsigned int sy = inputImage->getSizeY();
+
+        std::cout << "image min = " << inputImage->getMin() << std::endl;
+        std::cout << "image max = " << inputImage->getMax() << std::endl;
+
         if (inputImage->getSizeZ() > 1 || inputImage->getSizeT() > 1 || inputImage->getSizeC() > 1)
         {
             throw SException("spitfire2d can process only 2D gray scale images");
@@ -76,7 +82,17 @@ int main(int argc, char *argv[])
 
             // create the PSF
             float* psf = new float[sx_pad*sy_pad];
-            SImg::gaussian_psf_2d(psf, sx_pad, sy_pad, sigma, sigma);
+            if (psfImageFile == ""){   
+                SImg::gaussian_psf_2d(psf, sx_pad, sy_pad, sigma, sigma);
+            }
+            else{
+                SImageFloat* psfImage = dynamic_cast<SImageFloat*>(SImageReader::read(psfImageFile, 32));
+                if (psfImage->getSizeX() != sx || psfImage->getSizeY() != sy)
+                {
+                    throw SException("spitfire2d: The PSF image size is different from the input image size");
+                }
+                SImg::padding_2d(psfImage->getBuffer(), psf, sx, sy, sx_pad, sy_pad);
+            }
             float psf_sum = 0.0;
             for (unsigned int i = 0 ; i < sx_pad*sy_pad ; ++i){
                 psf_sum += psf[i]; 
@@ -108,8 +124,19 @@ int main(int argc, char *argv[])
         else
         {
             // create the PSF
-            float* psf = new float[sx*sy];
-            SImg::gaussian_psf_2d(psf, sx, sy, sigma, sigma);
+            float* psf = nullptr;
+            if (psfImageFile == ""){   
+                psf = new float[sx*sy]; 
+                SImg::gaussian_psf_2d(psf, sx, sy, sigma, sigma);
+            }
+            else{
+                SImageFloat* psfImage = dynamic_cast<SImageFloat*>(SImageReader::read(psfImageFile, 32));
+                if (psfImage->getSizeX() != sx || psfImage->getSizeY() != sy)
+                {
+                    throw SException("spitfire2d: The PSF image size is different from the input image size");
+                }
+                psf = psfImage->getBuffer();
+            }
             float psf_sum = 0.0;
             for (unsigned int i = 0 ; i < sx*sy ; ++i){
                 psf_sum += psf[i]; 

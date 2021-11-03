@@ -24,7 +24,6 @@ void medianFilter(float* image, unsigned int sx, unsigned int sy, unsigned int s
     std::vector<float> neighbors;
     neighbors.resize(unsigned(filterSize));
     for (int c = 0 ; c < sc ; c++){
-#pragma omp parallel for
         for (int x = rx ; x < sx-rx ; x++){
             for (int y = ry ; y < sy-ry ; y++){
                 for (int z = rz ; z < sz-rz ; z++){
